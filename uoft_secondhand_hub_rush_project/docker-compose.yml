@@ -1,0 +1,19 @@
+version: '3'
+services:
+  listings_service:
+    build: ./listings_service
+    ports:
+      - "5001:5000"
+    environment:
+      FLASK_APP: app.py
+    command: flask run --host=0.0.0.0 --port=5000
+
+  ratings_service:
+    build: ./rating_service
+    ports:
+      - "5002:5000"
+    environment:
+      FLASK_APP: app.py
+    command: flask run --host=0.0.0.0 --port=5000
+
+
