@@ -1,5 +1,4 @@
 version: '3'
-version: '3'
 services:
   listings_service:
     build: ./listings_service
