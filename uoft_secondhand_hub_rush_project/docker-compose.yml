@@ -6,6 +6,10 @@ services:
       - "5001:5000"
     environment:
       FLASK_APP: app.py
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
+      AWS_S3_REGION: ${AWS_S3_REGION}
     command: flask run --host=0.0.0.0 --port=5000
 
   ratings_service:
@@ -15,5 +19,3 @@ services:
     environment:
       FLASK_APP: app.py
     command: flask run --host=0.0.0.0 --port=5000
-
-
