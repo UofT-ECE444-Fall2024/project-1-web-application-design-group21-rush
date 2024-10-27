@@ -6,10 +6,10 @@ services:
       - "5001:5000"
     environment:
       FLASK_APP: app.py
-      AWS_ACCESS_KEY_ID: AKIA5FCD6UKREQOSSEOW
-      AWS_SECRET_ACCESS_KEY: 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
-      AWS_S3_BUCKET_NAME: uoft-secondhand-hub-rush-listings
-      AWS_S3_REGION: us-east-2
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
+      AWS_S3_REGION: ${AWS_S3_REGION}
     command: flask run --host=0.0.0.0 --port=5000
 
   ratings_service:
