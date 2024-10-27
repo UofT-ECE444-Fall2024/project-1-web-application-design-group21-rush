@@ -24,14 +24,14 @@ services:
     build: ./search_engine
     ports:
       - "5003:5000"
-    env_file:
-      - ./search_engine/.env
+    environment:
+      FLASK_APP: app.py
     command: flask run --host=0.0.0.0 --port=5000
 
-  recommendation_service:
-    build: ./recommendation_service
+  recommendations_service:
+    build: ./recommendations_service
     ports:
       - "5004:5000"
-    env_file:
-      - ./recommendation_service/.env
+    environment:
+      FLASK_APP: app.py
     command: flask run --host=0.0.0.0 --port=5000
