@@ -1,16 +1,15 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography } from '@mui/material';
 
+// TODO: Youssef - Implement navigation bar here
 const Header: React.FC = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Typography variant="h6">
           UofT Secondhand Hub
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          {/* Navigation items will be added by Youssef */}
-        </Box>
+        {/* TODO: Youssef - Add navigation items here */}
       </Toolbar>
     </AppBar>
   );

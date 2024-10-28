@@ -2,6 +2,9 @@ import React from 'react';
 import { Paper, InputBase, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
+// This component represents a search bar that users can use to search for listings.
+// It uses Material-UI components for styling.
+
 const SearchBar: React.FC = () => {
   return (
     <Paper
@@ -10,11 +13,11 @@ const SearchBar: React.FC = () => {
     >
       <InputBase
         sx={{ ml: 1, flex: 1 }}
-        placeholder="Search for items..."
+        placeholder="Search for items..." // Placeholder text for the search input
         inputProps={{ 'aria-label': 'search items' }}
       />
       <IconButton type="submit" sx={{ p: '10px' }} aria-label="search">
-        <SearchIcon />
+        <SearchIcon /> {/* Search icon button */}
       </IconButton>
     </Paper>
   );
