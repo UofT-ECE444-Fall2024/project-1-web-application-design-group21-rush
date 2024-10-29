@@ -20,6 +20,7 @@ const CreateListing: React.FC = () => {
     description: '',
     price: '',
     location: '',
+    condition: '',
     images: [] as File[]
   });
 
@@ -52,6 +53,13 @@ const CreateListing: React.FC = () => {
     console.log('Submitting listing:', listing);
   };
 
+  const handleConditionChange = (e: any) => {
+    setListing({
+        ...listing,
+        condition: e.target.value
+    });
+  };  
+
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Paper sx={{ p: 4 }}>
@@ -69,6 +77,21 @@ const CreateListing: React.FC = () => {
             margin="normal"
             required
           />
+
+        <FormControl fullWidth margin="normal" required>
+            <InputLabel>Condition</InputLabel>
+            <Select
+              value={listing.condition}
+              onChange={handleConditionChange}
+              label="Condition"
+            >
+              <MenuItem value="New">New</MenuItem>
+              <MenuItem value="Like New">Like New</MenuItem>
+              <MenuItem value="Good">Good</MenuItem>
+              <MenuItem value="Fair">Fair</MenuItem>
+              <MenuItem value="Poor">Poor</MenuItem>
+            </Select>
+        </FormControl>
 
           <TextField
             fullWidth
