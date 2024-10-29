@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import ProductInfo from './pages/ProductInfo';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
+import CreateListing from './pages/CreateListing';
 import './App.css';
 
 // This is the main App component that sets up the application.
@@ -25,6 +26,7 @@ function App() {
             <Route path="/productInfo" element={<ProductInfo />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/create-listing" element={<CreateListing />} />
             {/* Additional routes will be added by team members */}
           </Routes>
         </div>
