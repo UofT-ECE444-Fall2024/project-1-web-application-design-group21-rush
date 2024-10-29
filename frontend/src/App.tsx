@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
 import Header from './components/layout/Header';
 import Home from './pages/Home';
+import ProductInfo from './pages/ProductInfo';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 import './App.css';
@@ -21,6 +22,7 @@ function App() {
           <Header />
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/productInfo" element={<ProductInfo />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             {/* Additional routes will be added by team members */}
