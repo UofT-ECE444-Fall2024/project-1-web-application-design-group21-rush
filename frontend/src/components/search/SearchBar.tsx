@@ -18,7 +18,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     <Paper
       component="form"
       onSubmit={handleSubmit}
-      sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 400, m: 'auto', mt: 2 }}
+      sx={{ 
+        p: '2px 4px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        width: '100%'
+      }}
     >
       <InputBase
         sx={{ ml: 1, flex: 1 }}
