@@ -13,6 +13,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return !!localStorage.getItem('accessToken');
   });
 
+  // Set the authentication state on login
   const login = (token: string) => {
     localStorage.setItem('accessToken', token);
     setIsAuthenticated(true);
