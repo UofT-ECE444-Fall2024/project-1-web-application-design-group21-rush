@@ -31,7 +31,7 @@ jobs:
         working-directory: ./uoft_secondhand_hub_rush_project
         run: |
           docker compose up -d
-          sleep 10
+          sleep 10 # wait for services to start
           docker compose ps
 
       - name: Tear Down Docker Containers
