@@ -7,11 +7,19 @@ const Report: React.FC = () => {
     const [description, setDescription] = useState('');
     
     const [files, setFiles] = useState<File[]>([]);
-    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<Preview[]>([]);
     const [unknownFiles, setUnknownFiles] = useState<File[]>([]);
+
+    interface Preview {
+        name: string;
+        src: string;
+    }
+
+
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(event.target.files || []);
+        const previews: Preview[] = [];
         const validFiles: File[] = [];
         const unknown: File[] = [];
 
@@ -20,17 +28,19 @@ const Report: React.FC = () => {
                 // Known MIME type
                 validFiles.push(file);
                 // If the file is an image, display it
-                if (file.type.startsWith('image/')) {
-                    setImagePreviews(prev => [...prev, URL.createObjectURL(file)]);
-                }
+                // if (file.type.startsWith('image/')) {
+                // setImagePreviews(prev => [...prev, URL.createObjectURL(file)]);
+                previews.push({ name: file.name, src: URL.createObjectURL(file) });
+                // }
             } else {
                 // Unknown MIME type
                 unknown.push(file);
             }
         });
 
-        setFiles(validFiles);
-        setUnknownFiles(unknown);
+        setFiles(prevFiles => [...prevFiles, ...validFiles]);
+        setUnknownFiles(prevUnknown => [...prevUnknown, ...unknownFiles]);
+        setImagePreviews(prevPreviews => [...prevPreviews, ...previews]);
     };
 
     const handleUpload = () => {
@@ -40,11 +50,7 @@ const Report: React.FC = () => {
         console.log('Files ready for upload:', files);
         console.log('Unknown files (not uploaded):', unknownFiles);
 
-        // Uncomment for API call
-        // fetch('/api/upload', { method: 'POST', body: formData })
-        //   .then(response => response.json())
-        //   .then(data => console.log('Upload successful:', data))
-        //   .catch(error => console.error('Upload error:', error));
+        // TODO: Add API to handle file uploads
     };
 
     return (
@@ -86,8 +92,11 @@ const Report: React.FC = () => {
 
                 {imagePreviews.length > 0 && (
                     <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                    {imagePreviews.map((src, index) => (
-                        <img key={index} src={src} alt="Preview" style={{ width: '100px', height: '100px' }} />
+                    {imagePreviews.map((preview, index) => (
+                        <div key={index} style={{ textAlign: 'center' }}>
+                        <img src={preview.src} alt="File" style={{ width: '100px', height: '100px' }} />
+                        <p>{preview.name}</p>
+                        </div>
                     ))}
                     </div>
                 )}
