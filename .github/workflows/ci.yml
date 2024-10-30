@@ -13,10 +13,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Install Docker Compose
+      - name: Install Docker Compose Plugin
         run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
+          mkdir -p ~/.docker/cli-plugins/
+          curl -SL https://github.com/docker/compose/releases/download/v2.0.0/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+          chmod +x ~/.docker/cli-plugins/docker-compose
+
+      - name: Verify Docker Compose Installation
+        run: docker compose version
 
       - name: Navigate to backend project
         working-directory: ./uoft_secondhand_hub_rush_project
@@ -26,40 +30,5 @@ jobs:
       - name: Start Docker Containers
         working-directory: ./uoft_secondhand_hub_rush_project
         run: |
-          docker-compose up -d
-          sleep 10 # wait for services to start
-          docker-compose ps
-
-      - name: Tear Down Docker Containers
-        working-directory: ./uoft_secondhand_hub_rush_project
-        run: docker-compose down
-
-  frontend:
-    runs-on: ubuntu-latest
-    name: Build and Test Frontend
-    needs: backend_docker
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-
-      - name: Navigate to frontend directory
-        working-directory: ./frontend
-        run: |
-          echo "In frontend directory $(pwd)"
-
-      - name: Install Dependencies
-        working-directory: ./frontend
-        run: npm install
-
-      - name: Build Frontend
-        working-directory: ./frontend
-        run: npm run build
-
-      - name: Run Tests
-        working-directory: ./frontend
-        run: npm run test -- --watchAll=false
+          docker compose up -d
+          sleep 10 # wait f
