@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Box} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { FaRegUserCircle } from "react-icons/fa";
 
 // TODO: Youssef - Implement navigation bar here
 const Header: React.FC = () => {
@@ -8,11 +9,14 @@ const Header: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const buttonStyle = {
-    padding: '10px 20px',
-    fontSize: '16px',
-    borderRadius: '5px',
-    margin: '10px',
-    cursor: 'pointer'
+    padding: '15px 12px',
+    borderRadius: '10px',
+    margin: '7px',
+    cursor: 'pointer',
+    fontSize: '17px',
+    fontStyle: 'italic',
+    fontFamily: 'Georgia, serif',
+    fontWeight: 'bold',
   };
 
   const goToLogin = () => {
@@ -25,28 +29,28 @@ const Header: React.FC = () => {
   };
 
   const goToHome = () => {
-    navigate('/'); 
+    navigate('/');
   };
 
   const goToWishlist = () => {
-    navigate('/'); 
+    navigate('/');
   };
 
   const goToProfile = () => {
-    navigate('/'); 
+    navigate('/productInfo');
   };
 
   const goToLogout = () => {
     setIsAuthenticated(!isAuthenticated);
-    navigate('/'); 
+    navigate('/');
   };
 
 
   return (
     <AppBar position="static">
       <Toolbar>
-        <button onClick={goToHome}>
-          {/* style={{backgroundColor:'#001F3F'}}> */}
+        <button onClick={goToHome}
+          style={buttonStyle}>
           <Typography variant="h6"> 
             UofT Secondhand Hub
           </Typography>
@@ -71,9 +75,10 @@ const Header: React.FC = () => {
                 style={buttonStyle}
                 onClick={goToWishlist}>Wishlist</button>
             
-            <button 
-              style={buttonStyle}
-              onClick={goToProfile}>Profile</button>
+            <FaRegUserCircle
+              size={40}
+              style={{ cursor: 'pointer' }}
+              onClick={goToProfile}></FaRegUserCircle>
             
             <button 
               style={buttonStyle}
