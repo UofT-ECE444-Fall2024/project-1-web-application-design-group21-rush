@@ -31,4 +31,39 @@ jobs:
         working-directory: ./uoft_secondhand_hub_rush_project
         run: |
           docker compose up -d
-          sleep 10 # wait f
+          sleep 10
+          docker compose ps
+
+      - name: Tear Down Docker Containers
+        working-directory: ./uoft_secondhand_hub_rush_project
+        run: docker compose down
+
+  frontend:
+    runs-on: ubuntu-latest
+    name: Build and Test Frontend
+    needs: backend_docker
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Navigate to frontend directory
+        working-directory: ./frontend
+        run: |
+          echo "In frontend directory $(pwd)"
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Run Tests
+        working-directory: ./frontend
+        run: npm run test -- --watchAll=false
