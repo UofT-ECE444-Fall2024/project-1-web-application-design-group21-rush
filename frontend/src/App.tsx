@@ -7,8 +7,8 @@ import Home from './pages/Home';
 import ProductInfo from './pages/ProductInfo';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
-import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
-import { AuthProvider } from './context/AuthContext';      // Import AuthProvider
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
 
