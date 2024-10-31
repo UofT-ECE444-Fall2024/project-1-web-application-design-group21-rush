@@ -8,28 +8,56 @@ import {
   Grid,
   Alert 
 } from '@mui/material';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate, Navigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [alertMsg, setAlertMsg] = useState(''); //use this to give a alert message, For example, if the password or email is incorrect, just set use setAlertMsg and it will auto show up
+  const [alertMsg, setAlertMsg] = useState(''); // Show error messages if login fails
   const [isLoading, setIsLoading] = useState(false);
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;//email format checker
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Email format checker
+
+  // Redirect to the root if the user is already authenticated
+  console.log("login page isAuth:", isAuthenticated)
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   // Handle form submission
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => { //Uses the emailRegex to ensure that the email is in the correct format
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!emailRegex.test(email)) {
       setAlertMsg('Please enter a valid email address.');
-      return; 
+      return;
     }
     setAlertMsg('');
-    setIsLoading(true); // can create a seperate react hook to show a loading symbol when this is true
-    console.log('Logging in with', email, password); //Need to set api call HERE instead
-    setIsLoading(false);
+    setIsLoading(true);
 
+    try {
+      // Make an API call to the login endpoint
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        login(data.access_token); // Set the token and update auth state
+        navigate('/'); // Redirect to the root on successful login
+      } else {
+        setAlertMsg('Invalid email or password.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setAlertMsg('An error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -77,8 +105,9 @@ const Login: React.FC = () => {
                 variant="contained"
                 color="primary"
                 fullWidth
+                disabled={isLoading}
               >
-                Login
+                {isLoading ? 'Logging in...' : 'Login'}
               </Button>
             </Grid>
           </Grid>

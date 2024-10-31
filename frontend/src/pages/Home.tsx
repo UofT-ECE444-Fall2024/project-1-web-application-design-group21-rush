@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Container, 
-  Grid, 
-  Box,
+  Grid,
   FormControl,
   InputLabel,
   Select,
@@ -30,6 +29,7 @@ const Home: React.FC = () => {
 
   // Fetch listings on component mount
   useEffect(() => {
+    console.log('searchQuery: ', searchQuery)
     const fetchListings = async () => {
       try {
         const data = await listingsApi.getListings();
@@ -41,7 +41,7 @@ const Home: React.FC = () => {
       }
     };
     fetchListings();
-  }, []);
+  }, [searchQuery]);
 
   // Handle search
   const handleSearch = async (query: string) => {

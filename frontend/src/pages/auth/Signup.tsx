@@ -31,7 +31,7 @@ const Signup: React.FC = () => {
       setAlertMsg('Email must be a @mail.utoronto.ca address.');
       return;
     }
-    if(password!=confirmPassword){
+    if(password !== confirmPassword){
       setAlertMsg('Passwords must match');
       return;
     }
@@ -53,6 +53,7 @@ const Signup: React.FC = () => {
     }
     setAlertMsg('');
 
+    console.log('isLoading: ', isLoading);
     setIsLoading(true); // can create a seperate react hook to show a loading symbol when this is true
     setSuccessMsg('Success! Your account has been created.');
     console.log('Logging in with', email, password); //---------------------------------- Need to set api call HERE instead ----------------------------------
