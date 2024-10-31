@@ -14,7 +14,11 @@ const interestsList = [
   'Clothes',
   'Laptops',
   'Furniture',
-  'Electronics'
+  'Electronics',
+  'Sports Equipment',
+  'Bikes',
+  'Collectables',
+  'Miscellaneous'
 ];
 
 const UserInterests: React.FC = () => {
