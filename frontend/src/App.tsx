@@ -10,6 +10,7 @@ import Signup from './pages/auth/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
+import UserInterests from './pages/auth/UserInterests';
 
 
 function App() {
@@ -23,7 +24,8 @@ function App() {
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-
+              <Route path='/choose-interests-upon-signup' element={<UserInterests/>}/>
+              <Route path='/home' element={<Home/>}/>
               {/* Protected Routes */}
               <Route path="/" element={<ProtectedRoute component={Home} />} />
               <Route path="/productInfo" element={<ProtectedRoute component={ProductInfo} />} />
