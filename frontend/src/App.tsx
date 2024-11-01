@@ -24,11 +24,12 @@ function App() {
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-
+              <Route path="/home" element={<Home />} />
+              <Route path="/create-listing" element={<CreateListing />} />
               {/* Protected Routes */}
               <Route path="/" element={<ProtectedRoute component={Home} />} />
               <Route path="/productInfo" element={<ProtectedRoute component={ProductInfo} />} />
-              <Route path="/create-listing" element={<ProtectedRoute component={CreateListing} />} />
+              <Route path="/create-listing" element={<CreateListing />} />
 
             </Routes>
           </div>
