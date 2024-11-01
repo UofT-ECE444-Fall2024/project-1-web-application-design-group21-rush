@@ -9,6 +9,7 @@ const infoParameters = [
   { label: 'Condition', value: 'Used' },
   { label: 'Description', value: 'This is a blue couch big enough to sit 3 people comfortably. I bought it 2 years ago and need to get rid of it as I am moving.' },
   { label: 'Image', value: 'https://scontent.fykz1-2.fna.fbcdn.net/v/t45.5328-4/464668780_1639986103597933_7909698270533080824_n.jpg?stp=dst-jpg_p720x720&_nc_cat=101&ccb=1-7&_nc_sid=247b10&_nc_ohc=vqfj2KUmYwcQ7kNvgHU841l&_nc_zt=23&_nc_ht=scontent.fykz1-2.fna&_nc_gid=ABp5ih6_7hMgBWk1MQ6b71t&oh=00_AYCh4yIx7f1ysqa5Rh2Vy_Wu2PcPBSk3PgJ_Q9sGbPyI1w&oe=67260C3B' },
+  { label: 'Location', value: 'St.George' },
 ];
 
 const ProductInfo: React.FC = () => {
@@ -58,6 +59,12 @@ const ProductInfo: React.FC = () => {
             <Box sx={{ marginBottom: 1 }}>
               <Typography variant="h6">
                 <strong>Description:</strong> {infoParameters[4].value} 
+              </Typography>
+            </Box>
+
+            <Box sx={{ marginBottom: 1 }}>
+              <Typography variant="h6">
+                <strong>Location:</strong> {infoParameters[6].value} 
               </Typography>
             </Box>
 

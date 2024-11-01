@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import ProductInfo from './pages/ProductInfo';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
+import CreateListing from './pages/CreateListing';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
@@ -27,6 +28,7 @@ function App() {
               {/* Protected Routes */}
               <Route path="/" element={<ProtectedRoute component={Home} />} />
               <Route path="/productInfo" element={<ProtectedRoute component={ProductInfo} />} />
+              <Route path="/create-listing" element={<ProtectedRoute component={CreateListing} />} />
 
             </Routes>
           </div>
