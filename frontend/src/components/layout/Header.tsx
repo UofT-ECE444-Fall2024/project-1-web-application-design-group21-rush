@@ -36,6 +36,10 @@ const Header: React.FC = () => {
     navigate('/');
   };
 
+  const gotToCreateListing = () => {
+    navigate('/create-listing');
+  };
+
   const goToProfile = () => {
     navigate('/productInfo');
   };
@@ -74,6 +78,10 @@ const Header: React.FC = () => {
             <button 
                 style={buttonStyle}
                 onClick={goToWishlist}>Wishlist</button>
+
+            <button 
+                style={buttonStyle}
+                onClick={gotToCreateListing}>Create Listing</button>
             
             <FaRegUserCircle
               size={40}
