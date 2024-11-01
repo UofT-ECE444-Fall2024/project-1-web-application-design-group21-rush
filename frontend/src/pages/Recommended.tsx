@@ -12,61 +12,48 @@ import {
 } from '@mui/material';
 import SearchBar from '../components/search/SearchBar';
 import ListingCard from '../components/listings/ListingCard';
-import { listingsApi } from '../services/api';
 import { Listing } from '../types/listing';
 import { mockRecommendedItems } from '../mock/listings';
 import Header from '../components/layout/Header';
 
-// This component represents the home page of the application.
-// It implements User Stories 1.1 and 1.2 for searching and filtering listings.
-
 const Recommended: React.FC = () => {
   // State management
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
+  const [listings] = useState<Listing[]>(mockRecommendedItems); // Initialize with mock data directly
+  const [filteredListings, setFilteredListings] = useState<Listing[]>(mockRecommendedItems);
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [location, setLocation] = useState('');
   const [sortBy, setSortBy] = useState('datePosted');
 
-  // Fetch listings on component mount
-  useEffect(() => {
-    // Simulate API call with mock data
-    setListings(mockRecommendedItems);
-    setFilteredListings(mockRecommendedItems);
-  }, []);
-
   // Handle search
-  const handleSearch = async (query: string) => {
+  const handleSearch = (query: string) => {
     setSearchQuery(query);
-    try {
-      const results = await listingsApi.searchListings(query);
-      setFilteredListings(results);
-    } catch (error) {
-      console.error('Error searching listings:', error);
-      // TODO: Add error handling UI
-    }
   };
 
   // Filter handlers
   const handlePriceRangeChange = (event: Event, newValue: number | number[]) => {
     setPriceRange(newValue as [number, number]);
-    applyFilters();
   };
 
   const handleLocationChange = (event: any) => {
     setLocation(event.target.value);
-    applyFilters();
   };
 
   const handleSortChange = (event: any) => {
     setSortBy(event.target.value);
-    applyFilters();
   };
 
   // Apply all filters
-  const applyFilters = () => {
+  useEffect(() => {
     let filtered = [...listings];
+
+    // Apply search filter if exists
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(listing =>
+        listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        listing.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
 
     // Apply price filter
     filtered = filtered.filter(
@@ -83,11 +70,11 @@ const Recommended: React.FC = () => {
       if (sortBy === 'datePosted') {
         return new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime();
       }
-      return b.price - a.price;
+      return sortBy === 'price' ? a.price - b.price : 0;
     });
 
     setFilteredListings(filtered);
-  };
+  }, [searchQuery, priceRange, location, sortBy, listings]); // Add all dependencies
 
   return (
     <>
@@ -104,7 +91,7 @@ const Recommended: React.FC = () => {
             {/* Price Range - Takes up 3 columns */}
             <Grid item xs={12} md={3}>
               <Typography variant="body2" gutterBottom>
-                Price Range
+                Price Range (${priceRange[0]} - ${priceRange[1]})
               </Typography>
               <Slider
                 value={priceRange}
@@ -112,6 +99,7 @@ const Recommended: React.FC = () => {
                 valueLabelDisplay="auto"
                 min={0}
                 max={1000}
+                step={10}
               />
             </Grid>
 
@@ -149,6 +137,15 @@ const Recommended: React.FC = () => {
             </Grid>
           ))}
         </Grid>
+
+        {/* No Results Message */}
+        {filteredListings.length === 0 && (
+          <Paper sx={{ p: 2, mt: 2, textAlign: 'center' }}>
+            <Typography variant="h6" color="text.secondary">
+              No listings found matching your criteria
+            </Typography>
+          </Paper>
+        )}
       </Container>
     </>
   );
