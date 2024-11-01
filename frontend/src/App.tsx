@@ -23,7 +23,7 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-              <Route path="/" element={< Home />} />
+              <Route path="/" element={<Home />} />
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
@@ -31,7 +31,7 @@ function App() {
               {/* Protected Routes */}    
               {/* removed the protection for these routes for now (until users are fully implemented)*/}
               {/*<Route path="/" element={< Home />} />*/}
-              <Route path="/productInfo" element={<ProductInfo />} />
+              <Route path="/productInfo/:id" element={<ProductInfo />} />
               <Route path="/create-listing" element={<CreateListing />} />
               <Route path="/recommended" element={<Recommended />} />
               <Route path="/wishlist" element={<Wishlist />} />
