@@ -8,6 +8,7 @@ import ProductInfo from './pages/ProductInfo';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 import CreateListing from './pages/CreateListing';
+import Recommended from './pages/Recommended';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
@@ -31,6 +32,7 @@ function App() {
               {/*<Route path="/" element={< Home />} />*/}
               <Route path="/productInfo" element={<ProductInfo />} />
               <Route path="/create-listing" element={<CreateListing />} />
+              <Route path="/recommended" element={<Recommended />} />
 
             </Routes>
           </div>
