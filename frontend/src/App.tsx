@@ -21,14 +21,16 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
+              <Route path="/" element={< Home />} />
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
 
-              {/* Protected Routes */}
-              <Route path="/" element={<ProtectedRoute component={Home} />} />
-              <Route path="/productInfo" element={<ProtectedRoute component={ProductInfo} />} />
-              <Route path="/create-listing" element={<ProtectedRoute component={CreateListing} />} />
+              {/* Protected Routes */}    
+              {/* removed the protection for these routes for now (until users are fully implemented)*/}
+              {/*<Route path="/" element={< Home />} />*/}
+              <Route path="/productInfo" element={<ProductInfo />} />
+              <Route path="/create-listing" element={<CreateListing />} />
 
             </Routes>
           </div>
