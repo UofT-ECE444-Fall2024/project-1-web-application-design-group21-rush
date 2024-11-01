@@ -21,7 +21,8 @@ const CreateListing: React.FC = () => {
     price: '',
     location: '',
     condition: '',
-    images: [] as File[]
+    images: [] as File[],
+    category: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,6 +39,12 @@ const CreateListing: React.FC = () => {
     });
   };
 
+  const handleCategoryChange = (e: any) => {
+    setListing({
+      ...listing,
+      category: e.target.value
+    });
+  };
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setListing({
@@ -118,6 +125,33 @@ const CreateListing: React.FC = () => {
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
             }}
           />
+          
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={listing.category}
+              onChange={handleCategoryChange}
+              label="Category"
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    maxHeight: 250, //This is the height of categories shown, if there are more categories it can be accessed by scrolling
+                  },
+                },
+              }}
+            >
+              <MenuItem value="" style={{ color: 'grey' }}>Choose a Category</MenuItem> {/*If user wants to deselect*/}
+              <MenuItem value="Books">Books</MenuItem>
+              <MenuItem value="Clothes">Clothes</MenuItem>
+              <MenuItem value="Laptops">Laptops</MenuItem>
+              <MenuItem value="Furniture">Furniture</MenuItem>
+              <MenuItem value="Electronics">Electronics</MenuItem>
+              <MenuItem value="Sports Equipment">Sports Equipment</MenuItem>
+              <MenuItem value="Bikes">Bikes</MenuItem>
+              <MenuItem value="Collectables">Collectables</MenuItem>
+              <MenuItem value="Miscellaneous">Miscellaneous</MenuItem>
+            </Select>
+          </FormControl>
 
           <FormControl fullWidth margin="normal" required>
             <InputLabel>Location</InputLabel>
