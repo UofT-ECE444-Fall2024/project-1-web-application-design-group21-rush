@@ -11,12 +11,13 @@ import CreateListing from './pages/CreateListing';
 import Recommended from './pages/Recommended';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import Wishlist from './pages/Wishlist';
 import './App.css';
 
 
 function App() {
   return (
-    <AuthProvider> {}
+    <AuthProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Router>
@@ -33,6 +34,7 @@ function App() {
               <Route path="/productInfo" element={<ProductInfo />} />
               <Route path="/create-listing" element={<CreateListing />} />
               <Route path="/recommended" element={<Recommended />} />
+              <Route path="/wishlist" element={<Wishlist />} />
 
             </Routes>
           </div>
