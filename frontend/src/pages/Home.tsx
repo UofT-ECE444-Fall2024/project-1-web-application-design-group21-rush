@@ -98,13 +98,19 @@ const Home: React.FC = () => {
 
   return (
     <Container maxWidth="lg">
-      <SearchBar onSearch={handleSearch} />
-      
-      {/* Filters Section */}
+      {/* Search and Filters Section */}
       <Paper sx={{ p: 2, mt: 2, mb: 2 }}>
-        <Grid container spacing={3}>
+        <Grid container spacing={2} alignItems="center">
+          {/* Search Bar - Takes up 4 columns */}
           <Grid item xs={12} md={4}>
-            <Typography gutterBottom>Price Range</Typography>
+            <SearchBar onSearch={handleSearch} />
+          </Grid>
+
+          {/* Price Range - Takes up 3 columns */}
+          <Grid item xs={12} md={3}>
+            <Typography variant="body2" gutterBottom>
+              Price Range
+            </Typography>
             <Slider
               value={priceRange}
               onChange={handlePriceRangeChange}
@@ -113,8 +119,10 @@ const Home: React.FC = () => {
               max={1000}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth>
+
+          {/* Location Dropdown - Takes up 2.5 columns */}
+          <Grid item xs={12} md={2.5}>
+            <FormControl fullWidth size="small">
               <InputLabel>Location</InputLabel>
               <Select value={location} onChange={handleLocationChange}>
                 <MenuItem value="">All Locations</MenuItem>
@@ -124,8 +132,10 @@ const Home: React.FC = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth>
+
+          {/* Sort Dropdown - Takes up 2.5 columns */}
+          <Grid item xs={12} md={2.5}>
+            <FormControl fullWidth size="small">
               <InputLabel>Sort By</InputLabel>
               <Select value={sortBy} onChange={handleSortChange}>
                 <MenuItem value="datePosted">Most Recent</MenuItem>
