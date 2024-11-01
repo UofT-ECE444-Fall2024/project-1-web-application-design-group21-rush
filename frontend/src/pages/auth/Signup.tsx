@@ -56,6 +56,7 @@ const Signup: React.FC = () => {
     }
     setAlertMsg('');
 
+    console.log('isLoading: ', isLoading);
     setIsLoading(true); // can create a seperate react hook to show a loading symbol when this is true
     setSuccessMsg('Success! Your account has been created.');
 
@@ -64,7 +65,7 @@ const Signup: React.FC = () => {
       email:email,
       password:password
     }
-
+    
     console.log('Logging in with', userInfo.displayName, userInfo.email, userInfo.password); //---------------------------------- Need to set api call HERE instead ----------------------------------
     setIsLoading(false);
 
