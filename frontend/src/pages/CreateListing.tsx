@@ -140,6 +140,7 @@ const CreateListing: React.FC = () => {
                 },
               }}
             >
+              <MenuItem value="" style={{ color: 'grey' }}>Choose a Category</MenuItem> {/*If user wants to deselect*/}
               <MenuItem value="Books">Books</MenuItem>
               <MenuItem value="Clothes">Clothes</MenuItem>
               <MenuItem value="Laptops">Laptops</MenuItem>
