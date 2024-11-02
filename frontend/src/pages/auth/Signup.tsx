@@ -8,6 +8,7 @@ import {
   Grid,
   Alert 
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const Signup: React.FC = () => {
   
@@ -17,6 +18,8 @@ const Signup: React.FC = () => {
   const [alertMsg, setAlertMsg] = useState(''); //use this to give a alert message, For example, if the password or email is incorrect, just set use setAlertMsg and it will auto show up
   const [successMsg, setSuccessMsg] = useState(''); //To be used when sign up is successfull
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;//email format checker
 
@@ -63,6 +66,7 @@ const Signup: React.FC = () => {
     setPassword('');
     setConfirmPassword('');
 
+    navigate('/choose-interests-upon-signup');
   };
 
   return (

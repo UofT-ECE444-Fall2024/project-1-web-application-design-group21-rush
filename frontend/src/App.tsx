@@ -13,6 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import Wishlist from './pages/Wishlist';
 import './App.css';
+import UserInterests from './pages/auth/UserInterests';
 
 
 function App() {
@@ -23,18 +24,20 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-              <Route path="/" element={< Home />} />
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-
-              {/* Protected Routes */}    
-              {/* removed the protection for these routes for now (until users are fully implemented)*/}
-              {/*<Route path="/" element={< Home />} />*/}
-              <Route path="/productInfo" element={<ProductInfo />} />
+              <Route path='/choose-interests-upon-signup' element={<UserInterests/>}/>
+              
+              <Route path="/home" element={<Home />} />
               <Route path="/create-listing" element={<CreateListing />} />
-              <Route path="/recommended" element={<Recommended />} />
-              <Route path="/wishlist" element={<Wishlist />} />
+              
+              {/* Protected Routes */}
+              <Route path="/" element={<ProtectedRoute component={Home} />} />
+              <Route path="/productInfo" element={<ProtectedRoute component={ProductInfo} />} />
+              <Route path="/create-listing" element={<ProtectedRoute component={CreateListing} />} />
+              <Route path="/recommended" element={<ProtectedRoute component={Recommended> />} />
+              <Route path="/wishlist" element={<ProtectedRoute component={Wishlist} />} />
 
             </Routes>
           </div>
