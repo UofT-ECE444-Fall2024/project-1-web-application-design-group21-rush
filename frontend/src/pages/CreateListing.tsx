@@ -10,9 +10,13 @@ import {
   Select,
   MenuItem,
   Box,
-  InputAdornment
+  InputAdornment,
+  ImageList,
+  ImageListItem,
+  IconButton
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const CreateListing: React.FC = () => {
   const [listing, setListing] = useState({
@@ -24,6 +28,8 @@ const CreateListing: React.FC = () => {
     images: [] as File[],
     category: ''
   });
+
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setListing({
@@ -47,12 +53,34 @@ const CreateListing: React.FC = () => {
   };
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setListing({
-        ...listing,
-        images: [...listing.images, ...Array.from(e.target.files)]
-      });
+      const newFiles = Array.from(e.target.files);
+      
+      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+      
+      setListing(prev => ({
+        ...prev,
+        images: [...prev.images, ...newFiles]
+      }));
+      
+      setImagePreviews(prev => [...prev, ...newPreviews]);
     }
   };
+
+  const handleRemoveImage = (index: number) => {
+    setListing(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+    
+    URL.revokeObjectURL(imagePreviews[index]);
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  React.useEffect(() => {
+    return () => {
+      imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,10 +212,40 @@ const CreateListing: React.FC = () => {
                 Upload Images
               </Button>
             </label>
-            {listing.images.length > 0 && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                {listing.images.length} image(s) selected
-              </Typography>
+            
+            {imagePreviews.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  {listing.images.length} image(s) selected
+                </Typography>
+                <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} rowHeight={164}>
+                  {imagePreviews.map((preview, index) => (
+                    <ImageListItem key={preview} sx={{ position: 'relative' }}>
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        loading="lazy"
+                        style={{ height: '164px', objectFit: 'cover' }}
+                      />
+                      <IconButton
+                        sx={{
+                          position: 'absolute',
+                          top: 5,
+                          right: 5,
+                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          },
+                        }}
+                        size="small"
+                        onClick={() => handleRemoveImage(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              </Box>
             )}
           </Box>
 

@@ -35,4 +35,19 @@ export const listingsApi = {
     );
     return response.data;
   },
+
+  getWishlistItems: async () => {
+    const response = await axios.get<Listing[]>(`${LISTINGS_SERVICE_URL}/wishlist`);
+    return response.data;
+  },
+
+  addToWishlist: async (listingId: string) => {
+    const response = await axios.post(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
+    return response.data;
+  },
+
+  removeFromWishlist: async (listingId: string) => {
+    const response = await axios.delete(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
+    return response.data;
+  }
 };

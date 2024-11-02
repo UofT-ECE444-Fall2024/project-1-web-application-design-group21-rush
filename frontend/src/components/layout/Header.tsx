@@ -33,7 +33,7 @@ const Header: React.FC = () => {
   };
 
   const goToWishlist = () => {
-    navigate('/');
+    navigate('/wishlist');
   };
 
   const gotToCreateListing = () => {
