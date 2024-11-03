@@ -13,7 +13,7 @@ import {
 import SearchBar from '../components/search/SearchBar';
 import ListingCard from '../components/listings/ListingCard';
 import { Listing } from '../types/listing';
-import { mockRecommendedItems } from '../mock/listings';
+import { mockRecommendedItems, CATEGORIES } from '../mock/listings';
 import Header from '../components/layout/Header';
 
 const Recommended: React.FC = () => {
@@ -104,11 +104,9 @@ const Recommended: React.FC = () => {
                 <InputLabel>Category</InputLabel>
                 <Select value={category} onChange={handleCategoryChange}>
                   <MenuItem value="">All Categories</MenuItem>
-                  <MenuItem value="Textbooks">Textbooks</MenuItem>
-                  <MenuItem value="Electronics">Electronics</MenuItem>
-                  <MenuItem value="Furniture">Furniture</MenuItem>
-                  <MenuItem value="School Supplies">School Supplies</MenuItem>
-                  <MenuItem value="Other">Other</MenuItem>
+                  {CATEGORIES.map((cat) => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
