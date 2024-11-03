@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Grid, Box, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
 
 const CenterImagePage: React.FC = () => {
-    const categories = ['Sports', 'Books', 'Clothes', 'Technology', 'Appliances', 'Furniture'];
+    const categories = ['Sports Equipment', 'Books', 'Clothes', 'Laptops', 'Electronics', 'Furniture', 'Bikes', 'Collectables', 'Miscellaneous'];
 
     const [profilePicSrc, setProfilePicSrc] = useState("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Unknown_person.jpg/1084px-Unknown_person.jpg?20200423155822");
     // Handler functions to update state based on form input
