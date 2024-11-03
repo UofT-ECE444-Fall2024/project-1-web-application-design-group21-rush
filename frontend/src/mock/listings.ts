@@ -1,3 +1,15 @@
+export const CATEGORIES = [
+  'Textbooks',
+  'Electronics',
+  'Furniture',
+  'School Supplies',
+  'Clothes',
+  'Sports Equipment',
+  'Bikes',
+  'Collectables',
+  'Other'
+] as const;
+
 export const mockListings = [
   {
     id: '1',
@@ -9,7 +21,8 @@ export const mockListings = [
     condition: 'Like New',
     datePosted: '2024-03-15',
     sellerId: 'user1',
-    sellerName: 'John Doe'
+    sellerName: 'John Doe',
+    category: 'Textbooks'
   },
   {
     id: '2',
@@ -21,7 +34,8 @@ export const mockListings = [
     condition: 'Good',
     datePosted: '2024-03-14',
     sellerId: 'user2',
-    sellerName: 'Jane Smith'
+    sellerName: 'Jane Smith',
+    category: 'Electronics'
   },
   {
     id: '3',
@@ -33,7 +47,8 @@ export const mockListings = [
     condition: 'Good',
     datePosted: '2024-03-13',
     sellerId: 'user3',
-    sellerName: 'Mike Johnson'
+    sellerName: 'Mike Johnson',
+    category: 'Electronics'
   },
   {
     id: '4',
@@ -45,7 +60,8 @@ export const mockListings = [
     condition: 'Like New',
     datePosted: '2024-03-12',
     sellerId: 'user4',
-    sellerName: 'Sarah Wilson'
+    sellerName: 'Sarah Wilson',
+    category: 'Furniture'
   },
   {
     id: '5',
@@ -57,7 +73,8 @@ export const mockListings = [
     condition: 'New',
     datePosted: '2024-03-11',
     sellerId: 'user5',
-    sellerName: 'Alex Brown'
+    sellerName: 'Alex Brown',
+    category: 'School Supplies'
   }
 ];
 

@@ -24,6 +24,7 @@ const Recommended: React.FC = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [location, setLocation] = useState('');
   const [sortBy, setSortBy] = useState('datePosted');
+  const [category, setCategory] = useState('');
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -41,6 +42,10 @@ const Recommended: React.FC = () => {
 
   const handleSortChange = (event: any) => {
     setSortBy(event.target.value);
+  };
+
+  const handleCategoryChange = (event: any) => {
+    setCategory(event.target.value);
   };
 
   // Apply all filters
@@ -65,6 +70,11 @@ const Recommended: React.FC = () => {
       filtered = filtered.filter(listing => listing.location === location);
     }
 
+    // Apply category filter
+    if (category) {
+      filtered = filtered.filter(listing => listing.category === category);
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       if (sortBy === 'datePosted') {
@@ -74,7 +84,7 @@ const Recommended: React.FC = () => {
     });
 
     setFilteredListings(filtered);
-  }, [searchQuery, priceRange, location, sortBy, listings]); // Add all dependencies
+  }, [searchQuery, priceRange, location, category, sortBy, listings]); // Add all dependencies
 
   return (
     <>
@@ -86,6 +96,21 @@ const Recommended: React.FC = () => {
             {/* Search Bar - Takes up 4 columns */}
             <Grid item xs={12} md={4}>
               <SearchBar onSearch={handleSearch} />
+            </Grid>
+
+            {/* Category Dropdown */}
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Category</InputLabel>
+                <Select value={category} onChange={handleCategoryChange}>
+                  <MenuItem value="">All Categories</MenuItem>
+                  <MenuItem value="Textbooks">Textbooks</MenuItem>
+                  <MenuItem value="Electronics">Electronics</MenuItem>
+                  <MenuItem value="Furniture">Furniture</MenuItem>
+                  <MenuItem value="School Supplies">School Supplies</MenuItem>
+                  <MenuItem value="Other">Other</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
 
             {/* Price Range - Takes up 3 columns */}
