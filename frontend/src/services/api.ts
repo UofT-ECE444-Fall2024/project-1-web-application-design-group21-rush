@@ -21,5 +21,33 @@ export const listingsApi = {
   searchListings: async (query: string) => {
     const response = await axios.get<Listing[]>(`${SEARCH_SERVICE_URL}/search?q=${query}`);
     return response.data; // Returns an array of Listing objects matching the search query
+  },
+  
+  createListing: async (listingData: FormData) => {
+    const response = await axios.post<Listing>(
+      `${LISTINGS_SERVICE_URL}/listings`,
+      listingData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
+
+  getWishlistItems: async () => {
+    const response = await axios.get<Listing[]>(`${LISTINGS_SERVICE_URL}/wishlist`);
+    return response.data;
+  },
+
+  addToWishlist: async (listingId: string) => {
+    const response = await axios.post(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
+    return response.data;
+  },
+
+  removeFromWishlist: async (listingId: string) => {
+    const response = await axios.delete(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
+    return response.data;
   }
 };

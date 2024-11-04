@@ -13,13 +13,13 @@ import {
 import SearchBar from '../components/search/SearchBar';
 import ListingCard from '../components/listings/ListingCard';
 import { Listing } from '../types/listing';
-import { mockListings } from '../mock/listings';
+import { mockRecommendedItems } from '../mock/listings';
 import Header from '../components/layout/Header';
 
-const Home: React.FC = () => {
+const Recommended: React.FC = () => {
   // State management
-  const [listings] = useState<Listing[]>(mockListings); // Initialize with mock data directly
-  const [filteredListings, setFilteredListings] = useState<Listing[]>(mockListings);
+  const [listings] = useState<Listing[]>(mockRecommendedItems); // Initialize with mock data directly
+  const [filteredListings, setFilteredListings] = useState<Listing[]>(mockRecommendedItems);
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [location, setLocation] = useState('');
@@ -133,7 +133,7 @@ const Home: React.FC = () => {
         <Grid container spacing={3}>
           {filteredListings.map((listing) => (
             <Grid item xs={12} sm={6} md={4} key={listing.id}>
-              <ListingCard listing={listing} context="home" />
+              <ListingCard listing={listing} context="recommended" />
             </Grid>
           ))}
         </Grid>
@@ -151,4 +151,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default Recommended;
