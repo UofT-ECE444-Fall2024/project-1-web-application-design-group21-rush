@@ -6,8 +6,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
 app = Flask(__name__)
+app.config.from_pyfile('config.py')
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///auth.db'
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -23,6 +24,11 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+
+@app.route('/')
+def home():
+    return 'Hello from the authentication service'
 
 # User Registration
 @app.route('/register', methods=['POST'])
