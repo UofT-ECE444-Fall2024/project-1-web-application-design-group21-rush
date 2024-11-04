@@ -89,12 +89,13 @@ def send_verification_email(email):
 
     # Email content
     subject = "Verify Your Email Address"
-    sender_email = "your_sender_email@example.com"
+    sender_email = app.config['SENDER_EMAIL']
+    smtp_server = app.config['SMTP_SERVER']
+    smtp_port = app.config['SMTP_PORT']
+    smtp_username = app.config['SMTP_USERNAME']
+    smtp_password = app.config['SMTP_PASSWORD']
+
     receiver_email = email
-    smtp_server = "smtp.example.com"
-    smtp_port = 587
-    smtp_username = "your_smtp_username"
-    smtp_password = "your_smtp_password"
 
     # Craft the email message
     message = MIMEMultipart("alternative")
@@ -143,7 +144,7 @@ def verify_email(token):
             return jsonify({"error": "Registration request not found or has expired"}), 400
 
         # Register user in authentication service
-        auth_service_url = 'http://auth_service_host:5000/register'
+        auth_service_url = 'http://authentication_service:5000/register'
         auth_response = requests.post(auth_service_url, json={"username": pending_data["username"], "password": pending_data["password"]})
 
         if auth_response.status_code != 201:
