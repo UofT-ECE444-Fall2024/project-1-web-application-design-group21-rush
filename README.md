@@ -1,6 +1,6 @@
 # About the Project
 
-UofT Secondhand Hub is a web application designed to help UofT students buy and sell secondhand items in a safe and efficient way.
+UofT Secondhand Hub is a web application designed to help UofT students buy and sell secondhand items in a safe and efficient way. We use the Kanban board in the Project section to manage this project.
 
 # Tools
 
