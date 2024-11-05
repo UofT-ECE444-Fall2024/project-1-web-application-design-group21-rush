@@ -1,8 +1,9 @@
 import os
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, current_app
 from utils import upload_to_listings_s3
 from utils import upload_to_listings_table
 import uuid
+import requests
 from decimal import Decimal
 
 
@@ -62,7 +63,7 @@ def create_listing():
 
     image_urls = []
     for file in files:
-        filename = f"listings/{data['id']}/{file.filename}" # store them in a folder named by listing id
+        filename = f"listings/{data['id']}/{file.filename}"  # store them in a folder named by listing id
         file_url = upload_to_listings_s3(file, filename)
         if file_url:
             image_urls.append(file_url)
@@ -83,8 +84,25 @@ def create_listing():
         'sellerName': data['sellerName']
     }
 
+    # Upload listing data to listings table
     if upload_to_listings_table(listing_data):
-        return jsonify({'message': 'Listing created successfully'}), 200
+        # After successful listing creation, make an API call to the user profile service
+        user_service_url = 'http://user-profile-service:5000/add-listing'
+        payload = {
+            'user_id': data['sellerId'],
+            'listing_id': data['id']
+        }
+        
+        try:
+            response = requests.post(user_service_url, json=payload)
+            if response.status_code == 200:
+                return jsonify({'message': 'Listing created and added to user profile successfully'}), 200
+            else:
+                return jsonify({'error': 'Listing created but failed to add to user profile'}), 500
+        except requests.exceptions.RequestException as e:
+            current_app.logger.error(f"Failed to communicate with user service: {e}")
+            return jsonify({'error': 'Listing created but failed to add to user profile due to service error'}), 500
+
     return jsonify({'error': 'Failed to create listing'}), 500
 
 
