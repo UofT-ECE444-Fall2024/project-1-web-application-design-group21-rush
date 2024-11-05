@@ -49,6 +49,23 @@ def upload():
         return jsonify({'message': 'File uploaded successfully', 'file_url': file_url}), 200
     else:
         return jsonify({'error': 'Failed to upload file'}), 500
+    
+@app.route('/add-listing', methods=['POST'])
+def add_listing():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    listing_id = data.get('listing_id')
+
+    if not user_id or not listing_id:
+        return jsonify({'error': 'User ID and listing ID are required'}), 400
+
+    # Call the function to update the user profile
+    success = add_listing_id_to_user(user_id, listing_id)
+    if success:
+        return jsonify({'message': 'Listing ID added to user profile'}), 200
+    else:
+        return jsonify({'error': 'Failed to add listing ID to user profile'}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
