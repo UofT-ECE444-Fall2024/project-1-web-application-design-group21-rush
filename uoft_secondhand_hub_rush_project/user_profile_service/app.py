@@ -10,6 +10,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import traceback
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -23,6 +24,10 @@ db = SQLAlchemy(app)
 jwt = JWTManager(app)
 
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+with app.app_context():
+    db.create_all()
+    print("Database tables created successfully 1")
 
 # User model
 class User(db.Model):
@@ -51,6 +56,7 @@ pending_registrations = {}
 # Pre-Registration (Send Verification Email)
 @app.route('/pre_register', methods=['POST'])
 def pre_register():
+    print(f"Handling request in directory: {os.getcwd()}")
     data = request.get_json()
     username = data.get('username')
     email = data.get('email')
@@ -59,8 +65,8 @@ def pre_register():
     categories = data.get('categories')
     location = data.get('location')
 
-    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
-        return jsonify({"error": "User with this username or email already exists"}), 400
+    # if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+    #     return jsonify({"error": "User with this username or email already exists"}), 400
 
     # Temporarily store user data in pending registrations
     pending_registrations[email] = {
@@ -72,7 +78,7 @@ def pre_register():
     }
 
     # Generate and send a verification email
-    send_verification_email(email)
+    return send_verification_email(email)
 
     return jsonify({"message": "Verification email sent. Please verify your email to complete registration."}), 200
 
@@ -129,8 +135,13 @@ def send_verification_email(email):
             server.login(smtp_username, smtp_password)
             server.sendmail(sender_email, receiver_email, message.as_string())
         print(f"Verification email sent to {receiver_email}")
+        return 1
     except Exception as e:
         print(f"Failed to send verification email: {e}")
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        })
 
 
 # Verify Email and Complete Registration
@@ -209,3 +220,4 @@ def profile():
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
+
