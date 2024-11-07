@@ -170,3 +170,21 @@ def test_get_listings_by_seller_id(client):
     logging.info(f"Retrieved listing IDs: {retrieved_listing_ids}")
     
     assert set(retrieved_listing_ids) == set(expected_listing_ids), f"Expected listing IDs {expected_listing_ids}, got {retrieved_listing_ids}"
+
+def test_get_listings_by_category(client):
+    expected_listing_ids = ['furniture2', 'furnitureitemid']
+
+    response = client.get(f'/api/listings/category/furniture')
+    assert response.status_code == 200
+
+    response_data = response.get_json()
+    listings = response_data.get('listings', [])
+
+    # check that 2 are retrieved
+    assert len(listings) == 2, f"Expected 2 listings for seller ID, got {len(listings)}"
+
+    # check that it's the exact 2 we're expecting
+    retrieved_listing_ids = [listing['id'] for listing in listings]
+    logging.info(f"Retrieved listing IDs: {retrieved_listing_ids}")
+    
+    assert set(retrieved_listing_ids) == set(expected_listing_ids), f"Expected listing IDs {expected_listing_ids}, got {retrieved_listing_ids}"
