@@ -9,6 +9,7 @@ else:
     print("Could not connect to Elasticsearch.")
 
 app = Flask(__name__)
+app.config.from_pyfile('config.py')
 
 @app.route('/')
 def home():

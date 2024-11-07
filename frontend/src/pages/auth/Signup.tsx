@@ -6,19 +6,24 @@ import {
   TextField, 
   Button, 
   Grid,
-  Alert 
+  Alert, 
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const Signup: React.FC = () => {
-  
+
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [location, setLocation] = useState('');
   const [alertMsg, setAlertMsg] = useState(''); //use this to give a alert message, For example, if the password or email is incorrect, just set use setAlertMsg and it will auto show up
   const [successMsg, setSuccessMsg] = useState(''); //To be used when sign up is successfull
   const [isLoading, setIsLoading] = useState(false);
-
   const navigate = useNavigate();
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;//email format checker
@@ -28,6 +33,10 @@ const Signup: React.FC = () => {
     e.preventDefault();
     if (!emailRegex.test(email)) {
       setAlertMsg('Please enter a valid email address.');
+      return; 
+    }
+    if (location=='') {
+      setAlertMsg('Please select a location');
       return; 
     }
     if (!email.includes('mail.utoronto.ca')) {
@@ -59,11 +68,20 @@ const Signup: React.FC = () => {
     console.log('isLoading: ', isLoading);
     setIsLoading(true); // can create a seperate react hook to show a loading symbol when this is true
     setSuccessMsg('Success! Your account has been created.');
-    console.log('Logging in with', email, password); //---------------------------------- Need to set api call HERE instead ----------------------------------
+
+    const userInfo = { //use this for user creation
+      displayName:displayName,
+      email:email,
+      password:password,
+      location:location
+    }
+    
+    console.log('Logging in with', userInfo.displayName, userInfo.email, userInfo.password, userInfo.location); //---------------------------------- Need to set api call HERE instead ----------------------------------
     setIsLoading(false);
 
     setEmail('');
     setPassword('');
+    setLocation('');
     setConfirmPassword('');
 
     navigate('/choose-interests-upon-signup');
@@ -93,6 +111,30 @@ const Signup: React.FC = () => {
 
         <form onSubmit={handleLogin}>
           <Grid container spacing={2}>
+          <Grid item xs={12}>
+              <TextField
+                label="Display Name"
+                variant="outlined"
+                fullWidth
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth variant="outlined" required>
+                <InputLabel>Location</InputLabel>
+                <Select
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value as string)}
+                  label="Location"
+                >
+                  <MenuItem value="St. George">St. George</MenuItem>
+                  <MenuItem value="Mississauga">Mississauga</MenuItem>
+                  <MenuItem value="Scarborough">Scarborough</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
             <Grid item xs={12}>
               <TextField
                 label="Email"

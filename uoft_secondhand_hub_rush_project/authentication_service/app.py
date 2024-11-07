@@ -6,8 +6,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
 app = Flask(__name__)
+app.config.from_pyfile('config.py')
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///auth.db'
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
