@@ -41,7 +41,7 @@ const Header: React.FC = () => {
   };
 
   const goToProfile = () => {
-    navigate('/productInfo');
+    navigate('/profile-view');
   };
 
   const goToLogout = () => {
