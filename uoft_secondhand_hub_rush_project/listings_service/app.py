@@ -1,6 +1,11 @@
 import os
 from flask import Flask, request, jsonify, render_template_string
 from utils import upload_to_listings_s3
+from utils import upload_to_listings_table
+import uuid
+from decimal import Decimal
+
+
 
 app = Flask(__name__)
 
@@ -49,6 +54,39 @@ def upload():
         return jsonify({'message': 'File uploaded successfully', 'file_url': file_url}), 200
     else:
         return jsonify({'error': 'Failed to upload file'}), 500
+
+@app.route('/create-listing', methods=['POST'])
+def create_listing():
+    data = request.form.to_dict()  # Form data
+    files = request.files.getlist('file')  # Expecting 'file' to be an array of files
+
+    image_urls = []
+    for file in files:
+        filename = f"listings/{data['id']}/{file.filename}" # store them in a folder named by listing id
+        file_url = upload_to_listings_s3(file, filename)
+        if file_url:
+            image_urls.append(file_url)
+        else:
+            return jsonify({'error': 'Failed to upload one or more images'}), 500
+
+    listing_data = {
+        'id': data['id'],
+        'title': data['title'],
+        'description': data['description'],
+        'price': Decimal(data['price']),
+        'location': data['location'],
+        'condition': data['condition'],
+        'category': data['category'],
+        'images': image_urls,  # array of S3 URLs
+        'datePosted': data['datePosted'],
+        'sellerId': data['sellerId'],
+        'sellerName': data['sellerName']
+    }
+
+    if upload_to_listings_table(listing_data):
+        return jsonify({'message': 'Listing created successfully'}), 200
+    return jsonify({'error': 'Failed to create listing'}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

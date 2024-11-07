@@ -3,6 +3,8 @@ import pytest
 import boto3
 from app import app
 from dotenv import load_dotenv
+from datetime import datetime
+import uuid
 
 load_dotenv()
 
@@ -10,6 +12,7 @@ load_dotenv()
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_S3_LISTINGS_BUCKET_NAME = os.getenv('AWS_S3_LISTINGS_BUCKET_NAME')
+AWS_DB_LISTINGS_TABLE_NAME = os.getenv('AWS_DB_LISTINGS_TABLE_NAME')
 AWS_S3_REGION = os.getenv('AWS_S3_REGION')
 
 @pytest.fixture
@@ -46,3 +49,78 @@ def test_real_listings_s3_upload(client):
 
     # delete the test image from the listings bucket
     s3_client.delete_object(Bucket=AWS_S3_LISTINGS_BUCKET_NAME, Key='listings/test_image.jpg')
+
+def test_real_listings_dynamodb_and_s3_upload(client):
+    # Generate a unique ID for the test listing
+    listing_id = str(uuid.uuid4())
+    image_files = ['listings_service/test_image.jpg', 'listings_service/test_image2.jpg']
+    image_filenames = [f"{listing_id}/test_image.jpg", f"{listing_id}/test_image2.jpg"]  # Expected filenames in S3
+
+    # Prepare form data
+    data = {
+        'id': listing_id,
+        'title': 'New Test Listing Title',
+        'description': 'This is a description for a test listing.',
+        'price': '20',
+        'location': 'St. George',
+        'condition': 'Used',
+        'category': 'Electronics',
+        'datePosted': datetime.now().isoformat(),
+        'sellerId': 'test_seller_id',
+        'sellerName': 'Test Seller'
+    }
+
+    with open(image_files[0], 'rb') as img1, open(image_files[1], 'rb') as img2:
+        data['file'] = [
+            (img1, 'test_image.jpg'),
+            (img2, 'test_image2.jpg')
+        ]
+
+        # Send POST request to the Flask endpoint
+        response = client.post('/create-listing', data=data, content_type='multipart/form-data')
+        assert response.status_code == 200
+        response_data = response.get_json()
+        assert 'message' in response_data and response_data['message'] == 'Listing created successfully'
+
+    # initialize DynamoDB client
+    dynamodb_client = boto3.client(
+        'dynamodb',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_S3_REGION
+    )
+    
+    # make sure the data ended up in the dynamoDB listings table
+    response = dynamodb_client.get_item(
+        TableName=AWS_DB_LISTINGS_TABLE_NAME,
+        Key={'id': {'S': listing_id}}
+    )
+    item = response.get('Item')
+    assert item is not None, "Item not found in DynamoDB"
+    assert item['title']['S'] == 'New Test Listing Title'
+    assert item['description']['S'] == 'This is a description for a test listing.'
+    assert item['price']['N'] == '20'
+
+    expected_image_urls = [
+        f"https://{AWS_S3_LISTINGS_BUCKET_NAME}.s3.amazonaws.com/listings/{filename}"
+        for filename in image_filenames
+    ]
+
+    assert set(item['images']['SS']) == set(expected_image_urls), f"Image URLs do not match. Expected: {expected_image_urls}, Got: {item['images']['SS']}"
+
+
+    # initialize S3 client
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_S3_REGION
+    )
+
+    # make sure images were uploaded to listings S3 bucket
+    for filename in image_filenames:
+        try:
+            s3_client.head_object(Bucket=AWS_S3_LISTINGS_BUCKET_NAME, Key=f"listings/{filename}")
+        except s3_client.exceptions.ClientError:
+            assert False, f"Image {filename} not found in S3 bucket"
+

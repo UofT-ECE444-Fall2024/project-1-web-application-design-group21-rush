@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
 import Home from './pages/Home';
 import ProductInfo from './pages/ProductInfo';
+import ProfileView from './pages/ProfileView';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 import CreateListing from './pages/CreateListing';
@@ -39,6 +40,7 @@ function App() {
               <Route path="/recommended" element={<ProtectedRoute component={Recommended} />} />
               <Route path="/wishlist" element={<ProtectedRoute component={Wishlist} />} />
               <Route path="/report" element={<ProtectedRoute component={Report} />} />
+              <Route path="/profile-view" element={<ProtectedRoute component={ProfileView} />} />
 
             </Routes>
           </div>
