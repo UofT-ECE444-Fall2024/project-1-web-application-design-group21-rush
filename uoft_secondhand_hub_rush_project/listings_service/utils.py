@@ -48,4 +48,29 @@ def upload_to_listings_table(listing_data):
         current_app.logger.error(f"Failed to add listing to DynamoDB: {e}")
         return False
 
+def delete_from_listings_table(listing_id):
+    dynamodb = boto3.resource(
+        'dynamodb',
+        region_name=current_app.config['AWS_S3_REGION'],
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY']
+    )
+    
+    table = dynamodb.Table(current_app.config['AWS_DB_LISTINGS_TABLE_NAME'])
+
+    try:
+        response = table.delete_item(
+            Key={'id': listing_id}
+        )
+        # Check if deletion was successful based on the response status
+        if response.get('ResponseMetadata', {}).get('HTTPStatusCode') == 200:
+            current_app.logger.info(f"Listing with id {listing_id} deleted successfully.")
+            return True
+        else:
+            current_app.logger.error(f"Failed to delete listing with id {listing_id}: {response}")
+            return False
+    except Exception as e:
+        current_app.logger.error(f"Failed to delete listing with id {listing_id}: {e}")
+        return False
+
 

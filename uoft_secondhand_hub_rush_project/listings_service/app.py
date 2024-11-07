@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, jsonify, render_template_string
 from utils import upload_to_listings_s3
 from utils import upload_to_listings_table
+from utils import delete_from_listings_table
 import uuid
 from decimal import Decimal
 
@@ -34,11 +35,11 @@ UPLOAD_FORM_HTML = """
 def home():
     return 'Hello from listings service!'
 
-@app.route('/upload-form')
+@app.route('/api/listings/upload-form')
 def upload_form():
     return render_template_string(UPLOAD_FORM_HTML)
 
-@app.route('/upload', methods=['POST'])
+@app.route('/api/listings/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
@@ -55,7 +56,7 @@ def upload():
     else:
         return jsonify({'error': 'Failed to upload file'}), 500
 
-@app.route('/create-listing', methods=['POST'])
+@app.route('/api/listings/create-listing', methods=['POST'])
 def create_listing():
     data = request.form.to_dict()  # Form data
     files = request.files.getlist('file')  # Expecting 'file' to be an array of files
@@ -86,6 +87,17 @@ def create_listing():
     if upload_to_listings_table(listing_data):
         return jsonify({'message': 'Listing created successfully'}), 200
     return jsonify({'error': 'Failed to create listing'}), 500
+
+@app.route('/api/listings/delete/<id>', methods=['DELETE'])
+def delete_listing(id):
+    # attempt to delete the listing from the table
+    success = delete_from_listings_table(id)
+    
+    if success:
+        return jsonify({'message': f'Listing with id {id} deleted successfully'}), 200
+    else:
+        return jsonify({'error': f'Failed to delete listing with id {id}'}), 500
+
 
 
 if __name__ == '__main__':
