@@ -5,6 +5,9 @@ from app import app
 from dotenv import load_dotenv
 from datetime import datetime
 import uuid
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
@@ -77,7 +80,7 @@ def test_real_listings_dynamodb_and_s3_upload(client):
         ]
 
         # Send POST request to the Flask endpoint
-        response = client.post('/create-listing', data=data, content_type='multipart/form-data')
+        response = client.post('/api/listings/create-listing', data=data, content_type='multipart/form-data')
         assert response.status_code == 200
         response_data = response.get_json()
         assert 'message' in response_data and response_data['message'] == 'Listing created successfully'
@@ -124,3 +127,64 @@ def test_real_listings_dynamodb_and_s3_upload(client):
         except s3_client.exceptions.ClientError:
             assert False, f"Image {filename} not found in S3 bucket"
 
+def test_delete_specific_listing(client):
+    # Specify the listing ID you want to delete
+    listing_id = 'ca839416-2055-44b2-be16-50b3d327b409'  # Replace with the actual listing ID
+
+    # Step 1: Send DELETE request to remove the listing
+    delete_response = client.delete(f'/api/listings/delete/{listing_id}')
+    assert delete_response.status_code == 200
+    delete_response_data = delete_response.get_json()
+    assert 'message' in delete_response_data and delete_response_data['message'] == f'Listing with id {listing_id} deleted successfully'
+
+    # Step 2: Verify that the listing no longer exists in DynamoDB
+    dynamodb_client = boto3.client(
+        'dynamodb',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_S3_REGION
+    )
+    
+    # Try to retrieve the item from DynamoDB
+    response = dynamodb_client.get_item(
+        TableName=AWS_DB_LISTINGS_TABLE_NAME,
+        Key={'id': {'S': listing_id}}
+    )
+    item = response.get('Item')
+    assert item is None, f"Listing with id {listing_id} was not deleted from DynamoDB"
+
+def test_get_listings_by_seller_id(client):
+    expected_listing_ids = ['testanotherid', 'testsearchlisting']
+
+    response = client.get(f'/api/listings/user/Niv')
+    assert response.status_code == 200
+
+    response_data = response.get_json()
+    listings = response_data.get('listings', [])
+
+    # check that 2 are retrieved
+    assert len(listings) == 2, f"Expected 2 listings for seller ID, got {len(listings)}"
+
+    # check that it's the exact 2 we're expecting
+    retrieved_listing_ids = [listing['id'] for listing in listings]
+    logging.info(f"Retrieved listing IDs: {retrieved_listing_ids}")
+    
+    assert set(retrieved_listing_ids) == set(expected_listing_ids), f"Expected listing IDs {expected_listing_ids}, got {retrieved_listing_ids}"
+
+def test_get_listings_by_category(client):
+    expected_listing_ids = ['furniture2', 'furnitureitemid']
+
+    response = client.get(f'/api/listings/category/furniture')
+    assert response.status_code == 200
+
+    response_data = response.get_json()
+    listings = response_data.get('listings', [])
+
+    # check that 2 are retrieved
+    assert len(listings) == 2, f"Expected 2 listings for seller ID, got {len(listings)}"
+
+    # check that it's the exact 2 we're expecting
+    retrieved_listing_ids = [listing['id'] for listing in listings]
+    logging.info(f"Retrieved listing IDs: {retrieved_listing_ids}")
+    
+    assert set(retrieved_listing_ids) == set(expected_listing_ids), f"Expected listing IDs {expected_listing_ids}, got {retrieved_listing_ids}"
