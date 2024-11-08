@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, render_template_string
 from utils import upload_to_listings_s3
 from utils import upload_to_listings_table
 from utils import delete_from_listings_table
+from utils import get_all_listings
 import uuid
 from decimal import Decimal
 
@@ -98,7 +99,17 @@ def delete_listing(id):
     else:
         return jsonify({'error': f'Failed to delete listing with id {id}'}), 500
 
+@app.route('/api/listings/all', methods=['GET'])
+def get_all_listings_route():
+    # call the get all listings function in utils
+    listings = get_all_listings()
 
+    # make sure any sets are converted to lists
+    for listing in listings:
+        if 'images' in listing and isinstance(listing['images'], set):
+            listing['images'] = list(listing['images'])
+
+    return jsonify({'listings': listings}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

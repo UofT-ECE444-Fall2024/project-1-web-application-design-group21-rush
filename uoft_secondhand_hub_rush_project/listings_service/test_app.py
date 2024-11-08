@@ -5,6 +5,9 @@ from app import app
 from dotenv import load_dotenv
 from datetime import datetime
 import uuid
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
@@ -150,3 +153,22 @@ def test_delete_specific_listing(client):
     item = response.get('Item')
     assert item is None, f"Listing with id {listing_id} was not deleted from DynamoDB"
 
+def test_get_all_listings(client):
+    # send GET request to retrieve all listings
+    response = client.get('/api/listings/all')
+
+    # check response status code
+    assert response.status_code == 200, "Expected status code 200, but got {response.status_code}"
+
+    # parse response JSON
+    response_data = response.get_json()
+    listings = response_data.get('listings', [])
+
+    # verify that 33 are returned (that's just what existed at the time of writing this code)
+    assert len(listings) == 33, f"Expected 33 listings, but got {len(listings)}"
+
+    listing_ids = [listing['id'] for listing in listings]
+    logging.info(f"Retrieved listing IDs: {listing_ids}")
+    logging.info(f"Retrieved listings: {listings}")
+
+    
