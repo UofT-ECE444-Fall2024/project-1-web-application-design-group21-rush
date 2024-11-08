@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify, render_template_string
 from utils import upload_to_listings_s3
 from utils import upload_to_listings_table
 from utils import delete_from_listings_table
+from utils import get_listings_by_seller
+from utils import retrieve_listings_by_category
 import uuid
 from decimal import Decimal
 
@@ -98,7 +100,21 @@ def delete_listing(id):
     else:
         return jsonify({'error': f'Failed to delete listing with id {id}'}), 500
 
+@app.route('/api/listings/user/<seller_id>', methods=['GET'])
+def get_listings_by_user(seller_id):
+    listings = get_listings_by_seller(seller_id)
+    if listings:
+        return jsonify({'listings': listings}), 200
+    else:
+        return jsonify({'message': 'No listings found for this seller'}), 404
 
+@app.route('/api/listings/category/<category>', methods=['GET'])
+def get_listings_by_category(category):
+    listings = retrieve_listings_by_category(category)
+    if listings:
+        return jsonify({'listings': listings}), 200
+    else:
+        return jsonify({'message': 'No listings found for this category'}), 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
