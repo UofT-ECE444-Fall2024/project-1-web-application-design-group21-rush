@@ -12,5 +12,6 @@ export interface Listing {
   datePosted: string; // Date when the listing was posted
   sellerId: string; // ID of the seller
   sellerName: string; // Name of the seller
+  category: string; // Category of the listing
   // Add other fields as needed
 }

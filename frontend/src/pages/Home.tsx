@@ -13,7 +13,7 @@ import {
 import SearchBar from '../components/search/SearchBar';
 import ListingCard from '../components/listings/ListingCard';
 import { Listing } from '../types/listing';
-import { mockListings } from '../mock/listings';
+import { mockListings, CATEGORIES } from '../mock/listings';
 import Header from '../components/layout/Header';
 
 const Home: React.FC = () => {
@@ -24,6 +24,7 @@ const Home: React.FC = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [location, setLocation] = useState('');
   const [sortBy, setSortBy] = useState('datePosted');
+  const [category, setCategory] = useState('');
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -41,6 +42,10 @@ const Home: React.FC = () => {
 
   const handleSortChange = (event: any) => {
     setSortBy(event.target.value);
+  };
+
+  const handleCategoryChange = (event: any) => {
+    setCategory(event.target.value);
   };
 
   // Apply all filters
@@ -65,6 +70,11 @@ const Home: React.FC = () => {
       filtered = filtered.filter(listing => listing.location === location);
     }
 
+    // Apply category filter
+    if (category) {
+      filtered = filtered.filter(listing => listing.category === category);
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       if (sortBy === 'datePosted') {
@@ -74,7 +84,7 @@ const Home: React.FC = () => {
     });
 
     setFilteredListings(filtered);
-  }, [searchQuery, priceRange, location, sortBy, listings]); // Add all dependencies
+  }, [searchQuery, priceRange, location, category, sortBy, listings]); // Add all dependencies
 
   return (
     <>
@@ -84,12 +94,25 @@ const Home: React.FC = () => {
         <Paper sx={{ p: 2, mt: 2, mb: 2 }}>
           <Grid container spacing={2} alignItems="center">
             {/* Search Bar - Takes up 4 columns */}
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <SearchBar onSearch={handleSearch} />
             </Grid>
 
+            {/* Category Dropdown */}
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Category</InputLabel>
+                <Select value={category} onChange={handleCategoryChange}>
+                  <MenuItem value="">All Categories</MenuItem>
+                  {CATEGORIES.map((cat) => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
             {/* Price Range - Takes up 3 columns */}
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2.5}>
               <Typography variant="body2" gutterBottom>
                 Price Range (${priceRange[0]} - ${priceRange[1]})
               </Typography>
@@ -104,7 +127,7 @@ const Home: React.FC = () => {
             </Grid>
 
             {/* Location Dropdown - Takes up 2.5 columns */}
-            <Grid item xs={12} md={2.5}>
+            <Grid item xs={12} md={2.25}>
               <FormControl fullWidth size="small">
                 <InputLabel>Location</InputLabel>
                 <Select value={location} onChange={handleLocationChange}>
@@ -117,7 +140,7 @@ const Home: React.FC = () => {
             </Grid>
 
             {/* Sort Dropdown - Takes up 2.5 columns */}
-            <Grid item xs={12} md={2.5}>
+            <Grid item xs={12} md={2.25}>
               <FormControl fullWidth size="small">
                 <InputLabel>Sort By</InputLabel>
                 <Select value={sortBy} onChange={handleSortChange}>
