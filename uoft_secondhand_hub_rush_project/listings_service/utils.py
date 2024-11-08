@@ -73,6 +73,33 @@ def delete_from_listings_table(listing_id):
         current_app.logger.error(f"Failed to delete listing with id {listing_id}: {e}")
         return False
 
+def get_all_listings():
+  dynamodb = boto3.resource(
+        'dynamodb',
+        region_name=current_app.config['AWS_S3_REGION'],
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY']
+    )
+      
+  table = dynamodb.Table(current_app.config['AWS_DB_LISTINGS_TABLE_NAME'])
+  
+  try:
+      # scan to retrieve everything
+      response = table.scan()
+      listings = response.get('Items', [])
+      current_app.logger.info(f"Retrieved {len(listings)} from the database.")
+
+      # check for pagination
+      while 'LastEvaluatedKey' in response:
+          response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+          listings.extend(response.get('Items', []))
+
+      return listings
+
+  except Exception as e:
+      current_app.logger.error(f"Failed to retrieve all listings: {e}")
+      return []
+
 def get_listings_by_seller(seller_id):
     dynamodb = boto3.resource(
         'dynamodb',
