@@ -17,6 +17,7 @@ import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Listing } from '../../types/listing';
 import { listingsApi } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 interface ListingCardProps {
   listing: Listing;
@@ -30,9 +31,19 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
 
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event from firing
-    
+        
+    const { isAuthenticated, getToken } = useAuth(); // Access getToken from authProvider
+
     // Always show login dialog for wishlist actions if not in recommended context
     if (context !== 'recommended') {
+      setShowLoginDialog(true);
+      return;
+    }
+
+    const token = getToken();
+    if (!token) {
+      console.error('No token available');
+      // Optionally, you could set `showLoginDialog` here to prompt the user to log in.
       setShowLoginDialog(true);
       return;
     }
@@ -41,13 +52,19 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
       if (isWishlisted) {
         await listingsApi.removeFromWishlist(listing.id);
       } else {
-        await listingsApi.addToWishlist(listing.id);
+        await listingsApi.addToWishlist(listing.id, token);
       }
       setIsWishlisted(!isWishlisted);
     } catch (error) {
       console.error('Error updating wishlist:', error);
       // TODO: Add error toast notification
     }
+
+    return (
+      <div onClick={handleWishlistClick}>
+        {/* Listing content here */}
+      </div>
+    );
   };
 
   const handleCardClick = () => {
