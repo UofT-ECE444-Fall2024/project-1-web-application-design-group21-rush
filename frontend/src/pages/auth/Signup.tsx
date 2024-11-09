@@ -14,6 +14,9 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
+import { authApi } from '../../services/api';
+import { Password } from '@mui/icons-material';
+
 const Signup: React.FC = () => {
 
   const [displayName, setDisplayName] = useState('');
@@ -27,6 +30,7 @@ const Signup: React.FC = () => {
   const navigate = useNavigate();
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;//email format checker
+
 
   // Handle form submission
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => { //Uses the emailRegex to ensure that the email is in the correct format
@@ -83,6 +87,15 @@ const Signup: React.FC = () => {
     setPassword('');
     setLocation('');
     setConfirmPassword('');
+
+    authApi.preRegisterUser({
+      username: displayName,
+      email: email,
+      password: password,
+    })
+      .then(response => console.log(response))
+      .catch(error => console.error(error));
+
 
     navigate('/choose-interests-upon-signup');
   };
