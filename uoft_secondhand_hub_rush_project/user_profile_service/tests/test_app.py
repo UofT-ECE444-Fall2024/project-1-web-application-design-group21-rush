@@ -6,6 +6,7 @@ import json
 import os
 from dotenv import load_dotenv
 from itsdangerous import BadSignature, SignatureExpired
+from flask_jwt_extended import create_access_token
 
 # Load environment variables from .env.test
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env.test'))
@@ -16,12 +17,21 @@ class TestFlaskApp(unittest.TestCase):
     def setUp(self):
         # Create a test app instance with testing configuration
         self.app = create_app()
-        self.app.config['TESTING'] = True
+        self.app.config["TESTING"] = True
         self.client = self.app.test_client()
 
         # Access the pending_registrations from the app instance
         self.pending_registrations = self.app.pending_registrations
         self.pending_registrations.clear()
+
+        # Generate a test JWT token and set it in headers for authenticated requests
+        with self.app.app_context():
+            access_token = create_access_token(identity="testuser")
+            self.headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            }
+
 
     @patch('app.send_verification_email')
     @patch('app.scan_users_by_attribute')
@@ -43,7 +53,7 @@ class TestFlaskApp(unittest.TestCase):
         }
 
         # Send POST request to /pre_register
-        response = self.client.post('/pre_register',
+        response = self.client.post('/api/users/pre_register',
                                     data=json.dumps(user_data),
                                     content_type='application/json')
 
@@ -82,7 +92,7 @@ class TestFlaskApp(unittest.TestCase):
         }
 
         # Send POST request to /pre_register
-        response = self.client.post('/pre_register',
+        response = self.client.post('/api/users/pre_register',
                                     data=json.dumps(user_data),
                                     content_type='application/json')
 
@@ -110,7 +120,7 @@ class TestFlaskApp(unittest.TestCase):
         }
 
         # Send POST request to /pre_register
-        response = self.client.post('/pre_register',
+        response = self.client.post('/api/users/pre_register',
                                     data=json.dumps(user_data),
                                     content_type='application/json')
 
@@ -138,7 +148,7 @@ class TestFlaskApp(unittest.TestCase):
         }
 
         # Send POST request to /pre_register
-        response = self.client.post('/pre_register',
+        response = self.client.post('/api/users/pre_register',
                                     data=json.dumps(user_data),
                                     content_type='application/json')
 
@@ -163,7 +173,7 @@ class TestFlaskApp(unittest.TestCase):
             mock_upload_to_user_table.return_value = True
 
             # Send GET request to /verify_email/<token>
-            response = self.client.get('/verify_email/test-token')
+            response = self.client.get('/api/users/verify_email/test-token')
 
             # Check the response
             self.assertEqual(response.status_code, 201)
@@ -186,7 +196,7 @@ class TestFlaskApp(unittest.TestCase):
     def test_verify_email_invalid_token(self):
         with patch.object(self.app.serializer, 'loads', side_effect=BadSignature("Invalid signature")):
             # Send GET request to /verify_email/<invalid_token>
-            response = self.client.get('/verify_email/invalid-token')
+            response = self.client.get('/api/users/verify_email/invalid-token')
 
             # Check the response
             self.assertEqual(response.status_code, 400)
@@ -195,7 +205,7 @@ class TestFlaskApp(unittest.TestCase):
     def test_verify_email_expired_token(self):
         with patch.object(self.app.serializer, 'loads', side_effect=SignatureExpired("Signature expired")):
             # Send GET request to /verify_email/<expired_token>
-            response = self.client.get('/verify_email/expired-token')
+            response = self.client.get('/api/users/verify_email/expired-token')
 
             # Check the response
             self.assertEqual(response.status_code, 400)
@@ -207,7 +217,7 @@ class TestFlaskApp(unittest.TestCase):
             self.pending_registrations.pop("nonexistent@example.com", None)
 
             # Send GET request to /verify_email/<token>
-            response = self.client.get('/verify_email/test-token')
+            response = self.client.get('/api/users/verify_email/test-token')
 
             # Check the response
             self.assertEqual(response.status_code, 400)
@@ -233,7 +243,7 @@ class TestFlaskApp(unittest.TestCase):
         }
 
         # Send POST request to /resend_verification
-        response = self.client.post('/resend_verification',
+        response = self.client.post('/api/users/resend_verification',
                                     data=json.dumps(resend_data),
                                     content_type='application/json')
 
@@ -255,13 +265,53 @@ class TestFlaskApp(unittest.TestCase):
         }
 
         # Send POST request to /resend_verification
-        response = self.client.post('/resend_verification',
+        response = self.client.post('/api/users/resend_verification',
                                     data=json.dumps(resend_data),
                                     content_type='application/json')
 
         # Check the response
         self.assertEqual(response.status_code, 400)
         self.assertIn(b"No pending registration for this email", response.data)
+    
+    @patch("app.get_user_by_id")
+    @patch("app.update_user")
+    def test_add_to_wishlist(self, mock_update_user, mock_get_user_by_id):
+        # Mock the user retrieval and update functions
+        mock_get_user_by_id.return_value = {"id": "testuser", "wishlist": []}
+        mock_update_user.return_value = True
+
+        # Define data for the request
+        data = {"listingId": "test-listing-id"}
+
+        # Make the POST request to add to wishlist
+        response = self.client.post(
+            "/api/users/wishlist", headers=self.headers, data=json.dumps(data)
+        )
+
+        # Verify the response status code and content
+        self.assertEqual(
+            response.status_code, 200, f"Unexpected status code: {response.status_code}"
+        )
+        self.assertIn(
+            "Listing added to wishlist", response.get_json().get("message", "")
+        )
+
+    def test_add_to_wishlist_missing_listing_id(self):
+        # Make the POST request without the listingId
+        response = self.client.post(
+            "/api/users/wishlist", headers=self.headers, content_type="application/json"
+        )
+
+        # Verify the response status code
+        self.assertEqual(response.status_code, 400, f"Unexpected status code: {response.status_code}")
+
+        # Attempt to parse JSON and provide debugging information if it fails
+        try:
+            response_json = response.get_json()
+            self.assertIsNotNone(response_json, f"Expected JSON response, got None. Raw response: {response.data}")
+            self.assertIn("Listing ID is required", response_json.get("error", ""))
+        except Exception as e:
+            self.fail(f"Response is not JSON or is missing expected error message: {e}. Raw response: {response.data}")
 
 if __name__ == '__main__':
     unittest.main()
