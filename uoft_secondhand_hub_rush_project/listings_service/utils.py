@@ -100,6 +100,32 @@ def get_all_listings():
       current_app.logger.error(f"Failed to retrieve all listings: {e}")
       return []
 
+def update_listing_in_table(listing_id, update_data):
+    dynamodb = boto3.resource(
+        'dynamodb',
+        region_name=current_app.config['AWS_S3_REGION'],
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY']
+    )
+    
+    table = dynamodb.Table(current_app.config['AWS_DB_LISTINGS_TABLE_NAME'])
+    
+    # prep the update expression and attribute values
+    update_expression = "SET " + ", ".join([f"{k} = :{k}" for k in update_data.keys()])
+    expression_attribute_values = {f":{k}": v for k, v in update_data.items()}
+
+    try:
+        table.update_item(
+            Key={'id': listing_id},
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_attribute_values
+        )
+        current_app.logger.info(f"Listing with id {listing_id} updated successfully.")
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Failed to update listing with id {listing_id}: {e}")
+        return False
+
 def get_listings_by_seller(seller_id):
     dynamodb = boto3.resource(
         'dynamodb',
