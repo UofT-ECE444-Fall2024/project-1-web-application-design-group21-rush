@@ -29,10 +29,11 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
   const [showLoginDialog, setShowLoginDialog] = React.useState(false);
   const navigate = useNavigate();
 
+  const { isAuthenticated, getToken } = useAuth(); // Access getToken from authProvider
+
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event from firing
         
-    const { isAuthenticated, getToken } = useAuth(); // Access getToken from authProvider
 
     // Always show login dialog for wishlist actions if not in recommended context
     if (context !== 'recommended') {
