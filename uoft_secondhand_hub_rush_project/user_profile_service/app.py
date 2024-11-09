@@ -139,6 +139,10 @@ def register_routes(app):
     def health_check():
         return jsonify({'status': 'healthy'}), 200
 
+    @app.route('/health', methods=['GET'])
+    def simple_health_check():
+        return jsonify({'status': 'healthy'}), 200
+
     @app.route('/api/users/pre_register', methods=['POST'])
     def pre_register():
         app.logger.info("Received pre-registration request")
