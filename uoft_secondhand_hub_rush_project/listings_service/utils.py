@@ -171,3 +171,35 @@ def retrieve_listings_by_category(category):
     except Exception as e:
         current_app.logger.error(f"Failed to retrieve listings for category {category}: {e}")
         return []
+
+def get_listing_by_listing_id(listing_id):
+    dynamodb = boto3.resource(
+        'dynamodb',
+        region_name=current_app.config['AWS_S3_REGION'],
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY']
+    )
+    
+    table = dynamodb.Table(current_app.config['AWS_DB_LISTINGS_TABLE_NAME'])
+
+    try:
+        response = table.get_item(Key={'id': listing_id})
+        
+        if 'Item' not in response:
+            current_app.logger.error(f"No listing found with ID: {listing_id}")
+            return None
+            
+        listing = response['Item']
+        
+        # Convert any Decimal objects to float for JSON serialization
+        if 'price' in listing and isinstance(listing['price'], Decimal):
+            listing['price'] = float(listing['price'])
+            
+        # Convert Set to List for images if present
+        if 'images' in listing and isinstance(listing['images'], set):
+            listing['images'] = list(listing['images'])
+            
+        return listing
+    except Exception as e:
+        current_app.logger.error(f"Failed to retrieve listing with ID {listing_id}: {e}")
+        return None

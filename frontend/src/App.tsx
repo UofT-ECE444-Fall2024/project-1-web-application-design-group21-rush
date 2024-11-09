@@ -31,16 +31,24 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path='/choose-interests-upon-signup' element={<UserInterests/>}/>
               
-              <Route path="/" element={<Home />} />
+              {/* <Route path="/" element={<Home />} /> */}
               
               {/* Protected Routes */}
-              <Route path="/" element={<ProtectedRoute component={Home} />} />
+              {/* <Route path="/" element={<ProtectedRoute component={Home} />} />
               <Route path="/productInfo/:id" element={<ProtectedRoute component={ProductInfo} />} />
               <Route path="/create-listing" element={<ProtectedRoute component={CreateListing} />} />
               <Route path="/recommended" element={<ProtectedRoute component={Recommended} />} />
               <Route path="/wishlist" element={<ProtectedRoute component={Wishlist} />} />
               <Route path="/report" element={<ProtectedRoute component={Report} />} />
-              <Route path="/profile-view" element={<ProtectedRoute component={ProfileView} />} />
+              <Route path="/profile-view" element={<ProtectedRoute component={ProfileView} />} /> */}
+
+              <Route path="/" element={<Home />} />
+              <Route path="/productInfo/:id" element={<ProductInfo />} />
+              <Route path="/create-listing" element={<CreateListing />} />
+              <Route path="/recommended" element={<Recommended />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/report" element={<Report />} />
+              <Route path="/profile-view" element={<ProfileView />} />
 
             </Routes>
           </div>
