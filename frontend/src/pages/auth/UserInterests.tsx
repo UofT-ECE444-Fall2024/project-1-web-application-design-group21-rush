@@ -46,7 +46,7 @@ const UserInterests: React.FC = () => {
     }
     setAlertMsg('');
     console.log('Selected interests:', interests);
-    navigate('/home'); //---------------------------Navigates to HOME---------------------------
+    navigate('/'); //---------------------------Navigates to HOME---------------------------
   };
 
   return (
