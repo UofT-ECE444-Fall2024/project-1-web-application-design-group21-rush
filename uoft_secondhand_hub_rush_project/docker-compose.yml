@@ -61,27 +61,6 @@ services:
 
     command: flask run --host=0.0.0.0 --port=5000
 
-  authentication_service:
-    build: ./authentication_service
-    ports:
-      - "5006:5000"
-    environment:
-      FLASK_APP: app.py
-      JWT_SECRET_KEY: 6293d41ef60b7e764580181662bf7b4b3f1bb29d410ccf36b62ef5521e08e4a0
-    command: flask run --host=0.0.0.0 --port=5000
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10 
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node 
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m  
-    ports:
-      - "9200:9200"  
-    volumes:
-      - es_data:/usr/share/elasticsearch/data  
-    networks:
-      - app-network 
-
 volumes:
   es_data: {} 
 
