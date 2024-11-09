@@ -1,0 +1,1 @@
+export const LISTINGS_PER_PAGE = 9; // 3x3 grid 

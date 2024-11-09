@@ -10,7 +10,10 @@ import {
   Typography,
   Paper,
   CircularProgress,
-  Alert
+  Alert,
+  Button,
+  Stack,
+  ButtonGroup
 } from '@mui/material';
 import SearchBar from '../components/search/SearchBar';
 import ListingCard from '../components/listings/ListingCard';
@@ -18,6 +21,7 @@ import { Listing } from '../types/listing';
 import { CATEGORIES } from '../mock/listings';
 import Header from '../components/layout/Header';
 import { listingsApi } from '../services/api';
+import { LISTINGS_PER_PAGE } from '../constants/pagination';
 
 const Home: React.FC = () => {
   // State management
@@ -30,6 +34,7 @@ const Home: React.FC = () => {
   const [location, setLocation] = useState('');
   const [sortBy, setSortBy] = useState('datePosted');
   const [category, setCategory] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch listings when component mounts
   useEffect(() => {
@@ -105,6 +110,21 @@ const Home: React.FC = () => {
 
     setFilteredListings(filtered);
   }, [searchQuery, priceRange, location, category, sortBy, listings]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredListings.length / LISTINGS_PER_PAGE);
+  const paginatedListings = filteredListings.slice(
+    (currentPage - 1) * LISTINGS_PER_PAGE,
+    currentPage * LISTINGS_PER_PAGE
+  );
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
 
   if (isLoading) {
     return (
@@ -191,12 +211,41 @@ const Home: React.FC = () => {
 
         {/* Listings Grid */}
         <Grid container spacing={3}>
-          {filteredListings.map((listing) => (
+          {paginatedListings.map((listing) => (
             <Grid item xs={12} sm={6} md={4} key={listing.id}>
               <ListingCard listing={listing} context="home" />
             </Grid>
           ))}
         </Grid>
+
+        {/* Pagination Controls */}
+        {filteredListings.length > 0 && (
+          <Stack 
+            direction="row" 
+            spacing={2} 
+            justifyContent="center" 
+            alignItems="center" 
+            sx={{ mt: 4, mb: 2 }}
+          >
+            <ButtonGroup variant="outlined">
+              <Button 
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <Button disabled>
+                Page {currentPage} of {totalPages}
+              </Button>
+              <Button 
+                onClick={handleNextPage}
+                disabled={currentPage >= totalPages}
+              >
+                Next
+              </Button>
+            </ButtonGroup>
+          </Stack>
+        )}
 
         {/* No Results Message */}
         {filteredListings.length === 0 && (
