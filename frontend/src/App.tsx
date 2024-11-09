@@ -11,6 +11,7 @@ import Signup from './pages/auth/Signup';
 import CreateListing from './pages/CreateListing';
 import Recommended from './pages/Recommended';
 import ProtectedRoute from './components/ProtectedRoute';
+import Header from './components/layout/Header';
 import { AuthProvider } from './context/AuthContext';
 import Wishlist from './pages/Wishlist';
 import Report from './pages/Report';
@@ -25,6 +26,7 @@ function App() {
         <CssBaseline />
         <Router>
           <div className="App">
+            <Header />
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />

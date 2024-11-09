@@ -129,7 +129,6 @@ const Home: React.FC = () => {
   if (isLoading) {
     return (
       <>
-        <Header />
         <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
           <CircularProgress />
         </Container>
@@ -140,7 +139,6 @@ const Home: React.FC = () => {
   if (error) {
     return (
       <>
-        <Header />
         <Container sx={{ mt: 4 }}>
           <Alert severity="error">{error}</Alert>
         </Container>
@@ -150,7 +148,6 @@ const Home: React.FC = () => {
 
   return (
     <>
-      <Header />
       <Container maxWidth="lg">
         {/* Search and Filters Section */}
         <Paper sx={{ p: 2, mt: 2, mb: 2 }}>
