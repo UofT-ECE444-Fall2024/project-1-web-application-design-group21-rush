@@ -206,3 +206,59 @@ def test_get_listings_by_category(client):
     logging.info(f"Retrieved listing IDs: {retrieved_listing_ids}")
     
     assert set(retrieved_listing_ids) == set(expected_listing_ids), f"Expected listing IDs {expected_listing_ids}, got {retrieved_listing_ids}"
+
+def test_edit_specific_listing_with_image(client):
+    # going to try editing this specific listing
+    listing_id = '66583262-1b66-4601-afc3-5f283421c8f0'
+
+    # update the category 
+    updated_data = {
+        'category': 'furniture'
+    }
+
+    # open the test image file in binary mode
+    image_path = os.path.join(os.path.dirname(__file__), 'furniture_image.jpg')
+    with open(image_path, 'rb') as img_file:
+        # add the image file to the data being sent in the request
+        data = {
+            'category': 'furniture',
+            'file': (img_file, image_path)  # Add the image as a file
+        }
+
+        # send PUT request to edit the listing, including the image
+        edit_response = client.put(f'/api/listings/edit/{listing_id}', data=data, content_type='multipart/form-data')
+        assert edit_response.status_code == 200
+        edit_response_data = edit_response.get_json()
+        assert 'message' in edit_response_data and edit_response_data['message'] == 'Listing updated successfully'
+
+    # initialize ddb client to verify update
+    dynamodb_client = boto3.client(
+        'dynamodb',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_S3_REGION
+    )
+    
+    # retrieve the updated item from DynamoDB
+    response = dynamodb_client.get_item(
+        TableName=AWS_DB_LISTINGS_TABLE_NAME,
+        Key={'id': {'S': listing_id}}
+    )
+    item = response.get('Item')
+    assert item is not None, f"Listing with id {listing_id} was not found in DynamoDB after edit"
+    assert item['category']['S'] == 'furniture', f"Expected category to be 'furniture', but got {item['category']['S']}"
+
+    # verify that new image was added to S3 bucket
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_S3_REGION
+    )
+
+    # check if it's in the right location
+    expected_image_key = f"listings/{listing_id}/test_image.jpg"
+    try:
+        s3_client.head_object(Bucket=AWS_S3_LISTINGS_BUCKET_NAME, Key=expected_image_key)
+    except s3_client.exceptions.ClientError:
+        assert False, f"Image {expected_image_key} not found in S3 bucket"
