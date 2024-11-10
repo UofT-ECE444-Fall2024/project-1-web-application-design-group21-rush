@@ -77,7 +77,7 @@ export const listingsApi = {
 export const authApi = {
   preRegisterUser: async (request: RegisterRequest): Promise<RegisterResponse | ErrorResponse> => {
     try {
-      const response = await axios.post<RegisterResponse>(`${USER_SERVICE_URL}/pre_register`, request);
+      const response = await axios.post<RegisterResponse>(`${USER_SERVICE_URL}/api/users/pre_register`, request);
       return response.data;
     } catch (error) {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
@@ -86,7 +86,7 @@ export const authApi = {
 
   verifyEmail: async (token: string): Promise<VerificationResponse | ErrorResponse> => {
     try {
-      const response = await axios.get<VerificationResponse>(`${USER_SERVICE_URL}/verify_email/${token}`);
+      const response = await axios.get<VerificationResponse>(`${USER_SERVICE_URL}/api/users/pre_register/verify_email/${token}`);
       return response.data;
     } catch (error) {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
@@ -95,7 +95,7 @@ export const authApi = {
 
   resendVerification: async (email: string): Promise<VerificationResponse | ErrorResponse> => {
     try {
-      const response = await axios.post<VerificationResponse>(`${USER_SERVICE_URL}/resend_verification`, { email });
+      const response = await axios.post<VerificationResponse>(`${USER_SERVICE_URL}/api/users/pre_register/resend_verification`, { email });
       return response.data;
     } catch (error) {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
@@ -104,7 +104,7 @@ export const authApi = {
 
   loginUser: async (request: LoginRequest): Promise<LoginResponse | ErrorResponse> => {
     try {
-      const response = await axios.post<LoginResponse>(`${USER_SERVICE_URL}/login`, request);
+      const response = await axios.post<LoginResponse>(`${USER_SERVICE_URL}/api/users/pre_register/login`, request);
       localStorage.setItem('access_token', response.data.access_token); // Store token
       return response.data;
     } catch (error) {
@@ -118,7 +118,7 @@ export const authApi = {
 
     try {
       const response = await axios.post<LogoutResponse>(
-        `${USER_SERVICE_URL}/logout`,
+        `${USER_SERVICE_URL}/api/users/pre_register/logout`,
         {},
         {
           headers: {

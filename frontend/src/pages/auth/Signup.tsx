@@ -184,7 +184,7 @@ const Signup: React.FC = () => {
                 color="primary"
                 fullWidth
               >
-                Login
+                Create new account
               </Button>
             </Grid>
           </Grid>
