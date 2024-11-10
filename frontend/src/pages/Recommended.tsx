@@ -11,13 +11,19 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Button,
+  Stack,
+  ButtonGroup
 } from '@mui/material';
 import ListingCard from '../components/listings/ListingCard';
 import { Listing } from '../types/listing';
 import Header from '../components/layout/Header';
 import { listingsApi } from '../services/api';
 import { MOCK_USER_INTERESTS } from '../mock/userInterests';
+//import { LISTINGS_PER_PAGE } from '../constants/pagination';
+
+const LISTINGS_PER_PAGE = 9; // 3x3 grid 
 
 const Recommended: React.FC = () => {
   const [listings, setListings] = useState<Listing[]>([]);
@@ -25,6 +31,7 @@ const Recommended: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('datePosted');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch all listings and filter based on user interests
   useEffect(() => {
@@ -71,6 +78,21 @@ const Recommended: React.FC = () => {
 
   const handleSortChange = (event: any) => {
     setSortBy(event.target.value);
+  };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredListings.length / LISTINGS_PER_PAGE);
+  const paginatedListings = filteredListings.slice(
+    (currentPage - 1) * LISTINGS_PER_PAGE,
+    currentPage * LISTINGS_PER_PAGE
+  );
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
   };
 
   if (isLoading) {
@@ -132,13 +154,42 @@ const Recommended: React.FC = () => {
 
         {/* Recommended Listings Grid */}
         {filteredListings.length > 0 ? (
-          <Grid container spacing={3}>
-            {filteredListings.map((listing) => (
-              <Grid item xs={12} sm={6} md={4} key={listing.id}>
-                <ListingCard listing={listing} context="recommended" />
-              </Grid>
-            ))}
-          </Grid>
+          <>
+            <Grid container spacing={3}>
+              {paginatedListings.map((listing) => (
+                <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                  <ListingCard listing={listing} context="recommended" />
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Pagination Controls */}
+            <Stack 
+              direction="row" 
+              spacing={2} 
+              justifyContent="center" 
+              alignItems="center" 
+              sx={{ mt: 4, mb: 2 }}
+            >
+              <ButtonGroup variant="outlined">
+                <Button 
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button disabled>
+                  Page {currentPage} of {totalPages}
+                </Button>
+                <Button 
+                  onClick={handleNextPage}
+                  disabled={currentPage >= totalPages}
+                >
+                  Next
+                </Button>
+              </ButtonGroup>
+            </Stack>
+          </>
         ) : (
           <Paper sx={{ p: 2, mt: 2, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">

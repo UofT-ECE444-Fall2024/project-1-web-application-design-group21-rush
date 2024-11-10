@@ -308,6 +308,13 @@ def register_routes(app):
         # Blacklist token if required (e.g., add token to blacklist in a DB or cache)
         return jsonify({"message": "Successfully logged out"}), 200
     
+    @app.route('/api/users/user_id', methods=['GET'])
+    @jwt_required()
+    def get_user_id():
+        # Retrieve the user's ID from the JWT token
+        user_id = get_jwt_identity()
+        return jsonify({"user_id": user_id}), 200
+
 if __name__ == '__main__':
     app = create_app()
     app.run(port=5000, debug=True)

@@ -5,7 +5,7 @@ import { Listing } from '../types/listing';
 // TODO: Replace direct service URLs with API Gateway once implemented
 
 // Base URL for the listings service
-const LISTINGS_SERVICE_URL = process.env.REACT_APP_LISTINGS_SERVICE_URL || 'http://localhost:5000';
+const LISTINGS_SERVICE_URL = process.env.REACT_APP_LISTINGS_SERVICE_URL || 'http://localhost:5001';
 
 // Base URL for the search service
 const SEARCH_SERVICE_URL = process.env.REACT_APP_SEARCH_SERVICE_URL || 'http://localhost:5003';
