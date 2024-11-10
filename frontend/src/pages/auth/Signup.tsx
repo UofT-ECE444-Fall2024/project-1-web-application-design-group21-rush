@@ -13,6 +13,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { authApi } from '../../services/api';
 
 const Signup: React.FC = () => {
 
@@ -84,7 +85,16 @@ const Signup: React.FC = () => {
     setLocation('');
     setConfirmPassword('');
 
-    navigate('/choose-interests-upon-signup');
+    authApi.preRegisterUser({
+      username: displayName,
+      email: email,
+      password: password,
+    })
+      .then(response => console.log(response))
+      .catch(error => console.error(error));
+
+    navigate('/verifyEmail',);
+    //navigate('/choose-interests-upon-signup');
   };
 
   return (
