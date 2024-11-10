@@ -33,16 +33,6 @@ class TestFlaskApp(unittest.TestCase):
                 "Content-Type": "application/json",
             }
 
-
-        # Generate a test JWT token and set it in headers for authenticated requests
-        with self.app.app_context():
-            access_token = create_access_token(identity="testuser")
-            self.headers = {
-                "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json",
-            }
-
-
     @patch("app.send_verification_email")
     @patch("app.scan_users_by_attribute")
     def test_pre_register_success(self, mock_scan_users, mock_send_verification_email):

@@ -150,15 +150,16 @@ def register_routes(app):
     """
     Registers all routes with the Flask application.
     """
-    @app.route('/api/users/health', methods=['GET'])
+
+    @app.route("/api/users/health", methods=["GET"])
     def health_check():
-        return jsonify({'status': 'healthy'}), 200
+        return jsonify({"status": "healthy"}), 200
 
-    @app.route('/health', methods=['GET'])
+    @app.route("/health", methods=["GET"])
     def simple_health_check():
-        return jsonify({'status': 'healthy'}), 200
+        return jsonify({"status": "healthy"}), 200
 
-    @app.route('/api/users/pre_register', methods=['POST'])
+    @app.route("/api/users/pre_register", methods=["POST"])
     def pre_register():
         app.logger.info("Received pre-registration request")
         data = request.get_json()
@@ -238,7 +239,7 @@ def register_routes(app):
                 500,
             )
 
-    @app.route('/api/users/verify_email/<token>', methods=['GET'])
+    @app.route("/api/users/verify_email/<token>", methods=["GET"])
     def verify_email(token):
         app.logger.info("Received email verification request")
         try:
@@ -304,7 +305,7 @@ def register_routes(app):
             )
             return jsonify({"error": "An unexpected error occurred"}), 500
 
-    @app.route('/api/users/resend_verification', methods=['POST'])
+    @app.route("/api/users/resend_verification", methods=["POST"])
     def resend_verification():
         app.logger.info("Received request to resend verification email")
         data = request.get_json()
@@ -333,8 +334,8 @@ def register_routes(app):
         else:
             app.logger.error(f"Failed to resend verification email to {email}")
             return jsonify({"message": "Failed to resend verification email"}), 500
-        
-    @app.route('/api/users/login', methods=['POST'])
+
+    @app.route("/api/users/login", methods=["POST"])
     def login():
         data = request.get_json()
         if not data:
@@ -361,7 +362,7 @@ def register_routes(app):
             200,
         )
 
-    @app.route('/api/users/logout', methods=['POST'])
+    @app.route("/api/users/logout", methods=["POST"])
     @jwt_required()
     def logout():
         # Blacklist token if required (e.g., add token to blacklist in a DB or cache)
@@ -400,8 +401,10 @@ def register_routes(app):
         if not success:
             return jsonify({"error": "Failed to update wishlist"}), 500
 
-        return jsonify({"message": "Listing added to wishlist", "wishlist": wishlist}), 200
-
+        return (
+            jsonify({"message": "Listing added to wishlist", "wishlist": wishlist}),
+            200,
+        )
 
 
 if __name__ == "__main__":
