@@ -4,6 +4,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string) => void;
   logout: () => void;
+  getToken: () => string | null; // Add getToken to retrieve token
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +25,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsAuthenticated(false);
   };
 
+  // Function to retrieve the token from localStorage
+  const getToken = () => {
+    return localStorage.getItem('accessToken');
+  };
+
   // Re-check authentication whenever `localStorage` changes
   useEffect(() => {
     const handleStorageChange = () => {
@@ -36,7 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, getToken }}>
       {children}
     </AuthContext.Provider>
   );
