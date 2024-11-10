@@ -12,6 +12,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from flask_cors import CORS
 
 from utils import (
     get_user_table,
@@ -85,6 +86,7 @@ def create_app(config_filename=None):
     Factory function to create and configure the Flask application.
     """
     app = Flask(__name__)
+    CORS(app)
 
     # Load configuration
     if config_filename:
