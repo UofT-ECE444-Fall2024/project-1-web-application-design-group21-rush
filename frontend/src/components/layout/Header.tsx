@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { FaRegUserCircle } from "react-icons/fa";
+import { useAuth } from '../../context/AuthContext'; 
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated } = useAuth(); 
 
   const handleNavigation = (path: string) => {
     navigate(path);
