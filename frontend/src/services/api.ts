@@ -13,7 +13,7 @@ import {
 // Environment variables for URLs
 const LISTINGS_SERVICE_URL = process.env.REACT_APP_LISTINGS_SERVICE_URL || 'http://localhost:5000';
 const SEARCH_SERVICE_URL = process.env.REACT_APP_SEARCH_SERVICE_URL || 'http://localhost:5003';
-const AUTH_SERVICE_URL = 'http://127.0.0.1:5000g'; // Base URL for authentication
+const AUTH_SERVICE_URL = 'http://localhost:5005'; // Base URL for authentication
 
 // Listings-related API functions
 export const listingsApi = {
