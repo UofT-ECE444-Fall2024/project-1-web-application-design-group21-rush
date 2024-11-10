@@ -87,7 +87,7 @@ const Signup: React.FC = () => {
     setPassword('');
     setLocation('');
     setConfirmPassword('');
-
+    console.log(email);
     authApi.preRegisterUser({
       username: displayName,
       email: email,
@@ -96,8 +96,8 @@ const Signup: React.FC = () => {
       .then(response => console.log(response))
       .catch(error => console.error(error));
 
-
-    navigate('/choose-interests-upon-signup');
+    navigate('/verifyEmail',);
+  //  navigate('/choose-interests-upon-signup');
   };
 
   return (
@@ -193,7 +193,7 @@ const Signup: React.FC = () => {
           </Grid>
         </form>
         <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-          Already have an account? <a href="/login">Sign In</a>
+          Already have an account? <a href="/login">Create new account</a>
         </Typography>
       </Paper>
     </Container>
