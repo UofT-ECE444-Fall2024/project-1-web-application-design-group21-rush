@@ -400,10 +400,8 @@ def register_routes(app):
         if not success:
             return jsonify({"error": "Failed to update wishlist"}), 500
 
-        return (
-            jsonify({"message": "Listing added to wishlist", "wishlist": wishlist}),
-            200,
-        )
+        return jsonify({"message": "Listing added to wishlist", "wishlist": wishlist}), 200
+
 
 
 if __name__ == "__main__":
