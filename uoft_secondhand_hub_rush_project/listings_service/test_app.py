@@ -5,6 +5,9 @@ from app import app
 from dotenv import load_dotenv
 from datetime import datetime
 import uuid
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
@@ -149,6 +152,60 @@ def test_delete_specific_listing(client):
     )
     item = response.get('Item')
     assert item is None, f"Listing with id {listing_id} was not deleted from DynamoDB"
+
+def test_get_all_listings(client):
+    # send GET request to retrieve all listings
+    response = client.get('/api/listings/all')
+
+    # check response status code
+    assert response.status_code == 200, "Expected status code 200, but got {response.status_code}"
+
+    # parse response JSON
+    response_data = response.get_json()
+    listings = response_data.get('listings', [])
+
+    # verify that 33 are returned (that's just what existed at the time of writing this code)
+    assert len(listings) == 33, f"Expected 33 listings, but got {len(listings)}"
+
+    listing_ids = [listing['id'] for listing in listings]
+    logging.info(f"Retrieved listing IDs: {listing_ids}")
+    logging.info(f"Retrieved listings: {listings}")
+
+def test_get_listings_by_seller_id(client):
+    expected_listing_ids = ['testanotherid', 'testsearchlisting']
+
+    response = client.get(f'/api/listings/user/Niv')
+    assert response.status_code == 200
+
+    response_data = response.get_json()
+    listings = response_data.get('listings', [])
+
+    # check that 2 are retrieved
+    assert len(listings) == 2, f"Expected 2 listings for seller ID, got {len(listings)}"
+
+    # check that it's the exact 2 we're expecting
+    retrieved_listing_ids = [listing['id'] for listing in listings]
+    logging.info(f"Retrieved listing IDs: {retrieved_listing_ids}")
+    
+    assert set(retrieved_listing_ids) == set(expected_listing_ids), f"Expected listing IDs {expected_listing_ids}, got {retrieved_listing_ids}"
+
+def test_get_listings_by_category(client):
+    expected_listing_ids = ['furniture2', 'furnitureitemid']
+
+    response = client.get(f'/api/listings/category/furniture')
+    assert response.status_code == 200
+
+    response_data = response.get_json()
+    listings = response_data.get('listings', [])
+
+    # check that 2 are retrieved
+    assert len(listings) == 2, f"Expected 2 listings for seller ID, got {len(listings)}"
+
+    # check that it's the exact 2 we're expecting
+    retrieved_listing_ids = [listing['id'] for listing in listings]
+    logging.info(f"Retrieved listing IDs: {retrieved_listing_ids}")
+    
+    assert set(retrieved_listing_ids) == set(expected_listing_ids), f"Expected listing IDs {expected_listing_ids}, got {retrieved_listing_ids}"
 
 def test_edit_specific_listing_with_image(client):
     # going to try editing this specific listing

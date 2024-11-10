@@ -1,99 +1,84 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Box} from '@mui/material';
+import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { FaRegUserCircle } from "react-icons/fa";
 
-// TODO: Youssef - Implement navigation bar here
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   const buttonStyle = {
-    padding: '15px 12px',
-    borderRadius: '10px',
-    margin: '7px',
-    cursor: 'pointer',
-    fontSize: '17px',
-    fontStyle: 'italic',
-    fontFamily: 'Georgia, serif',
-    fontWeight: 'bold',
+    textTransform: 'none',
+    marginRight: 2,
+    color: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    },
   };
-
-  const goToLogin = () => {
-    setIsAuthenticated(!isAuthenticated);
-    navigate('/login');
-  };
-
-  const goToSignUp = () => {
-    navigate('/signup');
-  };
-
-  const goToHome = () => {
-    navigate('/');
-  };
-
-  const goToWishlist = () => {
-    navigate('/wishlist');
-  };
-
-  const gotToCreateListing = () => {
-    navigate('/create-listing');
-  };
-
-  const goToProfile = () => {
-    navigate('/profile-view');
-  };
-
-  const goToLogout = () => {
-    setIsAuthenticated(!isAuthenticated);
-    navigate('/');
-  };
-
 
   return (
     <AppBar position="static">
       <Toolbar>
-        <button onClick={goToHome}
-          style={buttonStyle}>
-          <Typography variant="h6"> 
+        <Button onClick={() => handleNavigation('/')} sx={{ textTransform: 'none' }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'white' }}>
             UofT Secondhand Hub
           </Typography>
-        </button>
-
+        </Button>
 
         <Box sx={{ flexGrow: 1 }} />
 
         {isAuthenticated ? (
           <>
-            <button 
-              style={buttonStyle}
-              onClick={goToSignUp}>Signup</button>
+            <Button 
+              onClick={() => handleNavigation('/signup')}
+              sx={buttonStyle}
+            >
+              Signup
+            </Button>
             
-            <button 
-              style={buttonStyle}
-              onClick={goToLogin}>Login</button>
+            <Button 
+              onClick={() => handleNavigation('/login')}
+              sx={buttonStyle}
+            >
+              Login
+            </Button>
           </>
         ) : (
           <>
-            <button 
-                style={buttonStyle}
-                onClick={goToWishlist}>Wishlist</button>
+            <Button 
+              onClick={() => handleNavigation('/wishlist')}
+              sx={buttonStyle}
+            >
+              Wishlist
+            </Button>
 
-            <button 
-                style={buttonStyle}
-                onClick={gotToCreateListing}>Create Listing</button>
+            <Button 
+              onClick={() => handleNavigation('/create-listing')}
+              sx={buttonStyle}
+            >
+              Create Listing
+            </Button>
             
             <FaRegUserCircle
               size={40}
-              style={{ cursor: 'pointer' }}
-              onClick={goToProfile}></FaRegUserCircle>
+              style={{ cursor: 'pointer', marginRight: 16, color: 'white' }}
+              onClick={() => handleNavigation('/profile-view')}
+            />
             
-            <button 
-              style={buttonStyle}
-              onClick={goToLogout}>Logout</button>
+            <Button 
+              onClick={() => handleNavigation('/')}
+              sx={buttonStyle}
+            >
+              Logout
+            </Button>
           </>
         )}
-
       </Toolbar>
     </AppBar>
   );

@@ -31,7 +31,8 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event from firing
     
-    if (context === 'home') {
+    // Always show login dialog for wishlist actions if not in recommended context
+    if (context !== 'recommended') {
       setShowLoginDialog(true);
       return;
     }
@@ -50,11 +51,18 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
   };
 
   const handleCardClick = () => {
+    // If in home context, show login dialog
     if (context === 'home') {
       setShowLoginDialog(true);
-    } else {
+      return;
+    }
+
+    // If in recommended context (user is logged in), navigate to product info
+    if (context === 'recommended') {
       navigate(`/productInfo/${listing.id}`);
     }
+
+    // Wishlist context behavior will be implemented later
   };
 
   const handleLoginClick = () => {
@@ -65,6 +73,23 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
   const handleSignupClick = () => {
     setShowLoginDialog(false);
     navigate('/signup');
+  };
+
+  const formatPrice = (price: any): string => {
+    // Handle different price formats (string, number, undefined)
+    const numPrice = typeof price === 'string' ? parseFloat(price) : Number(price);
+    return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2);
+  };
+
+  const getImageUrl = (listing: Listing): string => {
+    // If there's a direct imageUrl, use it
+    if (listing.imageUrl) return listing.imageUrl;
+    
+    // If there are images in the array, use the first one
+    if (listing.images && listing.images.length > 0) return listing.images[0];
+    
+    // Fallback to placeholder
+    return '/placeholder-image.jpg';
   };
 
   return (
@@ -86,9 +111,12 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
         <CardMedia
           component="img"
           height="200"
-          image={listing.imageUrl || '/placeholder-image.jpg'}
+          image={getImageUrl(listing)}
           alt={listing.title}
-          sx={{ objectFit: 'cover' }}
+          sx={{ 
+            objectFit: 'cover',
+            backgroundColor: 'grey.100' // Add a background color while image loads
+          }}
         />
 
         {/* Wishlist Button */}
@@ -118,7 +146,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
           </Typography>
           
           <Typography variant="h6" color="primary" gutterBottom>
-            ${listing.price.toFixed(2)}
+            ${formatPrice(listing.price)}
           </Typography>
 
           <Typography variant="body2" color="text.secondary" noWrap>
@@ -142,7 +170,10 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, context = 'home' }) 
         <DialogTitle>Sign in Required</DialogTitle>
         <DialogContent>
           <Typography>
-            Please sign in or create an account to view listing details.
+            {context === 'home' 
+              ? 'Please sign in or create an account to view listing details.'
+              : 'Please sign in or create an account to add items to your wishlist.'
+            }
           </Typography>
         </DialogContent>
         <DialogActions sx={{ padding: 2, display: 'flex', justifyContent: 'space-between' }}>

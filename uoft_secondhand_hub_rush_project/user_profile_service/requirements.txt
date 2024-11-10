@@ -4,3 +4,9 @@ Flask-Moment==1.0.2
 boto3
 pytest
 moto[boto3]
+Flask-SQLAlchemy==3.0.5
+Flask-JWT-Extended==4.4.4
+Werkzeug==2.3.7
+itsdangerous==2.1.2
+requests==2.31.0
+python-dotenv

@@ -13,8 +13,8 @@ const SEARCH_SERVICE_URL = process.env.REACT_APP_SEARCH_SERVICE_URL || 'http://l
 export const listingsApi = {
   // Function to fetch all listings from the listings service
   getListings: async () => {
-    const response = await axios.get<Listing[]>(`${LISTINGS_SERVICE_URL}/listings`);
-    return response.data; // Returns an array of Listing objects
+    const response = await axios.get<{ listings: Listing[] }>(`${LISTINGS_SERVICE_URL}/api/listings/all`);
+    return response.data.listings; // Returns an array of Listing objects
   },
   
   // Function to search listings based on a query string
@@ -25,7 +25,7 @@ export const listingsApi = {
   
   createListing: async (listingData: FormData) => {
     const response = await axios.post<Listing>(
-      `${LISTINGS_SERVICE_URL}/listings`,
+      `${LISTINGS_SERVICE_URL}/api/listings/create-listing`,
       listingData,
       {
         headers: {
@@ -49,5 +49,10 @@ export const listingsApi = {
   removeFromWishlist: async (listingId: string) => {
     const response = await axios.delete(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
     return response.data;
-  }
+  },
+
+  getListingById: async (id: string) => {
+    const response = await axios.get<{ listing: Listing }>(`${LISTINGS_SERVICE_URL}/api/listings/${id}`);
+    return response.data.listing;
+  },
 };
