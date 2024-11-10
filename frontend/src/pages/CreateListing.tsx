@@ -13,10 +13,13 @@ import {
   InputAdornment,
   ImageList,
   ImageListItem,
-  IconButton
+  IconButton,
+  Alert
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { listingsApi } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const CreateListing: React.FC = () => {
   const [listing, setListing] = useState({
@@ -30,6 +33,9 @@ const CreateListing: React.FC = () => {
   });
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setListing({
@@ -84,8 +90,41 @@ const CreateListing: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement API call to create listing
-    console.log('Submitting listing:', listing);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      
+      // Add basic listing data
+      formData.append('id', crypto.randomUUID()); // Generate a unique ID
+      formData.append('title', listing.title);
+      formData.append('description', listing.description);
+      formData.append('price', listing.price);
+      formData.append('location', listing.location);
+      formData.append('condition', listing.condition);
+      formData.append('category', listing.category);
+      formData.append('datePosted', new Date().toISOString());
+      
+      // TODO: Get these from auth context once implemented
+      formData.append('sellerId', 'temp-user-id');
+      formData.append('sellerName', 'Temporary User');
+
+      // Add all images
+      listing.images.forEach((file) => {
+        formData.append('file', file);
+      });
+
+      await listingsApi.createListing(formData);
+      
+      // Redirect to home page after successful creation
+      navigate('/');
+    } catch (err) {
+      console.error('Error creating listing:', err);
+      setError('Failed to create listing. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleConditionChange = (e: any) => {
@@ -101,6 +140,12 @@ const CreateListing: React.FC = () => {
         <Typography variant="h4" gutterBottom>
           Create New Listing
         </Typography>
+        
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         
         <form onSubmit={handleSubmit}>
           <TextField
@@ -256,8 +301,9 @@ const CreateListing: React.FC = () => {
             size="large"
             fullWidth
             sx={{ mt: 2 }}
+            disabled={isSubmitting}
           >
-            Create Listing
+            {isSubmitting ? 'Creating...' : 'Create Listing'}
           </Button>
         </form>
       </Paper>

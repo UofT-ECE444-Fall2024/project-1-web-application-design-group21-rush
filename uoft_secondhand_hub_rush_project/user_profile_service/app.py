@@ -1,8 +1,6 @@
-# app.py
-
 from flask import Flask, request, jsonify, url_for, current_app
-from flask_jwt_extended import JWTManager
-from werkzeug.security import generate_password_hash
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
@@ -137,7 +135,15 @@ def register_routes(app):
     """
     Registers all routes with the Flask application.
     """
-    @app.route('/pre_register', methods=['POST'])
+    @app.route('/api/users/health', methods=['GET'])
+    def health_check():
+        return jsonify({'status': 'healthy'}), 200
+
+    @app.route('/health', methods=['GET'])
+    def simple_health_check():
+        return jsonify({'status': 'healthy'}), 200
+
+    @app.route('/api/users/pre_register', methods=['POST'])
     def pre_register():
         app.logger.info("Received pre-registration request")
         data = request.get_json()
@@ -194,7 +200,7 @@ def register_routes(app):
             app.logger.error(f"Failed to send verification email to {email}")
             return jsonify({"message": "Failed to send verification email. Please try again later."}), 500
 
-    @app.route('/verify_email/<token>', methods=['GET'])
+    @app.route('/api/users/verify_email/<token>', methods=['GET'])
     def verify_email(token):
         app.logger.info("Received email verification request")
         try:
@@ -242,7 +248,7 @@ def register_routes(app):
             app.logger.error(f"An unexpected error occurred during email verification: {e}")
             return jsonify({"error": "An unexpected error occurred"}), 500
 
-    @app.route('/resend_verification', methods=['POST'])
+    @app.route('/api/users/resend_verification', methods=['POST'])
     def resend_verification():
         app.logger.info("Received request to resend verification email")
         data = request.get_json()
@@ -271,6 +277,43 @@ def register_routes(app):
         else:
             app.logger.error(f"Failed to resend verification email to {email}")
             return jsonify({"message": "Failed to resend verification email"}), 500
+        
+    @app.route('/api/users/login', methods=['POST'])
+    def login():
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
+
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+
+        # Fetch user by email
+        user = scan_users_by_attribute("email", email)
+        if not user or not check_password_hash(user['password'], password):
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        if not user.get("email_verified"):
+            return jsonify({"error": "Email not verified"}), 403
+
+        # Generate a JWT token
+        access_token = create_access_token(identity=user['id'])
+        return jsonify({"access_token": access_token, "message": "Login successful"}), 200
+
+    @app.route('/api/users/logout', methods=['POST'])
+    @jwt_required()
+    def logout():
+        # Blacklist token if required (e.g., add token to blacklist in a DB or cache)
+        return jsonify({"message": "Successfully logged out"}), 200
+    
+    @app.route('/api/users/user_id', methods=['GET'])
+    @jwt_required()
+    def get_user_id():
+        # Retrieve the user's ID from the JWT token
+        user_id = get_jwt_identity()
+        return jsonify({"user_id": user_id}), 200
 
 if __name__ == '__main__':
     app = create_app()

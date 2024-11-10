@@ -2,170 +2,201 @@ import React, { useState, useEffect } from 'react';
 import { 
   Container, 
   Grid,
+  Typography,
+  Paper,
+  CircularProgress,
+  Alert,
+  Chip,
+  Box,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Slider,
-  Typography,
-  Paper
+  Button,
+  Stack,
+  ButtonGroup
 } from '@mui/material';
-import SearchBar from '../components/search/SearchBar';
 import ListingCard from '../components/listings/ListingCard';
 import { Listing } from '../types/listing';
-import { mockRecommendedItems, CATEGORIES } from '../mock/listings';
 import Header from '../components/layout/Header';
+import { listingsApi } from '../services/api';
+import { MOCK_USER_INTERESTS } from '../mock/userInterests';
+//import { LISTINGS_PER_PAGE } from '../constants/pagination';
+
+const LISTINGS_PER_PAGE = 9; // 3x3 grid 
 
 const Recommended: React.FC = () => {
-  // State management
-  const [listings] = useState<Listing[]>(mockRecommendedItems); // Initialize with mock data directly
-  const [filteredListings, setFilteredListings] = useState<Listing[]>(mockRecommendedItems);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
-  const [location, setLocation] = useState('');
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('datePosted');
-  const [category, setCategory] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Handle search
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
+  // Fetch all listings and filter based on user interests
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        setIsLoading(true);
+        const data = await listingsApi.getListings();
+        setListings(data);
 
-  // Filter handlers
-  const handlePriceRangeChange = (event: Event, newValue: number | number[]) => {
-    setPriceRange(newValue as [number, number]);
-  };
+        // Filter listings based on mock user interests
+        const recommendedListings = data.filter(listing => 
+          MOCK_USER_INTERESTS.includes(listing.category)
+        );
 
-  const handleLocationChange = (event: any) => {
-    setLocation(event.target.value);
-  };
+        setFilteredListings(recommendedListings);
+      } catch (err) {
+        console.error('Error fetching recommended listings:', err);
+        setError('Failed to fetch recommended listings. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, []);
+
+  // Sort listings whenever sortBy changes
+  useEffect(() => {
+    const sortedListings = [...filteredListings].sort((a, b) => {
+      if (sortBy === 'datePosted') {
+        return new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime();
+      }
+      if (sortBy === 'priceLowToHigh') {
+        return a.price - b.price;
+      }
+      if (sortBy === 'priceHighToLow') {
+        return b.price - a.price;
+      }
+      return 0;
+    });
+
+    setFilteredListings(sortedListings);
+  }, [sortBy]);
 
   const handleSortChange = (event: any) => {
     setSortBy(event.target.value);
   };
 
-  const handleCategoryChange = (event: any) => {
-    setCategory(event.target.value);
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredListings.length / LISTINGS_PER_PAGE);
+  const paginatedListings = filteredListings.slice(
+    (currentPage - 1) * LISTINGS_PER_PAGE,
+    currentPage * LISTINGS_PER_PAGE
+  );
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => prev + 1);
   };
 
-  // Apply all filters
-  useEffect(() => {
-    let filtered = [...listings];
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
 
-    // Apply search filter if exists
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(listing =>
-        listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        listing.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply price filter
-    filtered = filtered.filter(
-      listing => listing.price >= priceRange[0] && listing.price <= priceRange[1]
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress />
+        </Container>
+      </>
     );
+  }
 
-    // Apply location filter
-    if (location) {
-      filtered = filtered.filter(listing => listing.location === location);
-    }
-
-    // Apply category filter
-    if (category) {
-      filtered = filtered.filter(listing => listing.category === category);
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      if (sortBy === 'datePosted') {
-        return new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime();
-      }
-      return sortBy === 'price' ? a.price - b.price : 0;
-    });
-
-    setFilteredListings(filtered);
-  }, [searchQuery, priceRange, location, category, sortBy, listings]); // Add all dependencies
+  if (error) {
+    return (
+      <>
+        <Header />
+        <Container sx={{ mt: 4 }}>
+          <Alert severity="error">{error}</Alert>
+        </Container>
+      </>
+    );
+  }
 
   return (
     <>
       <Header />
       <Container maxWidth="lg">
-        {/* Search and Filters Section */}
+        {/* User Interests and Sort Section */}
         <Paper sx={{ p: 2, mt: 2, mb: 2 }}>
           <Grid container spacing={2} alignItems="center">
-            {/* Search Bar - Takes up 4 columns */}
-            <Grid item xs={12} md={4}>
-              <SearchBar onSearch={handleSearch} />
-            </Grid>
-
-            {/* Category Dropdown */}
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Category</InputLabel>
-                <Select value={category} onChange={handleCategoryChange}>
-                  <MenuItem value="">All Categories</MenuItem>
-                  {CATEGORIES.map((cat) => (
-                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Price Range - Takes up 3 columns */}
-            <Grid item xs={12} md={3}>
-              <Typography variant="body2" gutterBottom>
-                Price Range (${priceRange[0]} - ${priceRange[1]})
+            <Grid item xs={12} md={8}>
+              <Typography variant="h6" gutterBottom>
+                Recommended Based on Your Interests
               </Typography>
-              <Slider
-                value={priceRange}
-                onChange={handlePriceRangeChange}
-                valueLabelDisplay="auto"
-                min={0}
-                max={1000}
-                step={10}
-              />
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {MOCK_USER_INTERESTS.map((interest) => (
+                  <Chip
+                    key={interest}
+                    label={interest}
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
             </Grid>
-
-            {/* Location Dropdown - Takes up 2.5 columns */}
-            <Grid item xs={12} md={2.5}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Location</InputLabel>
-                <Select value={location} onChange={handleLocationChange}>
-                  <MenuItem value="">All Locations</MenuItem>
-                  <MenuItem value="St. George">St. George</MenuItem>
-                  <MenuItem value="Mississauga">Mississauga</MenuItem>
-                  <MenuItem value="Scarborough">Scarborough</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Sort Dropdown - Takes up 2.5 columns */}
-            <Grid item xs={12} md={2.5}>
+            <Grid item xs={12} md={4}>
               <FormControl fullWidth size="small">
                 <InputLabel>Sort By</InputLabel>
                 <Select value={sortBy} onChange={handleSortChange}>
                   <MenuItem value="datePosted">Most Recent</MenuItem>
-                  <MenuItem value="price">Price</MenuItem>
+                  <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
+                  <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
           </Grid>
         </Paper>
 
-        {/* Listings Grid */}
-        <Grid container spacing={3}>
-          {filteredListings.map((listing) => (
-            <Grid item xs={12} sm={6} md={4} key={listing.id}>
-              <ListingCard listing={listing} context="recommended" />
+        {/* Recommended Listings Grid */}
+        {filteredListings.length > 0 ? (
+          <>
+            <Grid container spacing={3}>
+              {paginatedListings.map((listing) => (
+                <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                  <ListingCard listing={listing} context="recommended" />
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
 
-        {/* No Results Message */}
-        {filteredListings.length === 0 && (
+            {/* Pagination Controls */}
+            <Stack 
+              direction="row" 
+              spacing={2} 
+              justifyContent="center" 
+              alignItems="center" 
+              sx={{ mt: 4, mb: 2 }}
+            >
+              <ButtonGroup variant="outlined">
+                <Button 
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button disabled>
+                  Page {currentPage} of {totalPages}
+                </Button>
+                <Button 
+                  onClick={handleNextPage}
+                  disabled={currentPage >= totalPages}
+                >
+                  Next
+                </Button>
+              </ButtonGroup>
+            </Stack>
+          </>
+        ) : (
           <Paper sx={{ p: 2, mt: 2, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
-              No listings found matching your criteria
+              No listings found matching your interests
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Try updating your interests or check back later for new listings
             </Typography>
           </Paper>
         )}
