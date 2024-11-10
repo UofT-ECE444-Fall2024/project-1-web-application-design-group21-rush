@@ -31,7 +31,7 @@ UPLOAD_FORM_HTML = """
 </head>
 <body>
   <h1>Upload an Image to Listings S3 Bucket</h1>
-  <form action="/upload" method="post" enctype="multipart/form-data">
+  <form action="/api/listings/upload" method="post" enctype="multipart/form-data">
     <input type="file" name="file" accept="image/*">
     <button type="submit">Upload</button>
   </form>
@@ -207,6 +207,14 @@ def get_listings_by_category(category):
         return jsonify({'listings': listings}), 200
     else:
         return jsonify({'message': 'No listings found for this category'}), 404
+
+@app.route('/api/listings/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy'}), 200
+
+@app.route('/health', methods=['GET'])
+def simple_health_check():
+    return jsonify({'status': 'healthy'}), 200
 
 @app.route('/api/listings/<id>', methods=['GET'])
 def get_listing_by_id_endpoint(id):
