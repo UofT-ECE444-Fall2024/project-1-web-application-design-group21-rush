@@ -327,5 +327,159 @@ class TestFlaskApp(unittest.TestCase):
         except Exception as e:
             self.fail(f"Response is not JSON or is missing expected error message: {e}. Raw response: {response.data}")
 
+    @patch('app.scan_users_by_attribute')
+    @patch('app.check_password_hash')
+    def test_login_success(self, mock_check_password_hash, mock_scan_users):
+        # Mock scan_users_by_attribute to return a list containing a user
+        user_data = {
+            "id": "testuser_id",
+            "email": "test@example.com",
+            "password": "hashed_password",
+            "email_verified": True
+        }
+        mock_scan_users.return_value = [user_data]  # Return a list of users
+
+        # Mock check_password_hash to return True
+        mock_check_password_hash.return_value = True
+
+        # Prepare login data
+        login_data = {
+            "email": "test@example.com",
+            "password": "TestPassword123"
+        }
+
+        # Send POST request to /api/users/login
+        response = self.client.post(
+            '/api/users/login',
+            data=json.dumps(login_data),
+            content_type='application/json'
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 200)
+        response_json = response.get_json()
+        self.assertIn("access_token", response_json)
+        self.assertEqual(response_json["message"], "Login successful")
+
+    @patch('app.scan_users_by_attribute')
+    @patch('app.check_password_hash')
+    def test_login_invalid_credentials(self, mock_check_password_hash, mock_scan_users):
+        # Mock scan_users_by_attribute to return a list containing a user
+        user_data = {
+            "id": "testuser_id",
+            "email": "test@example.com",
+            "password": "hashed_password",
+            "email_verified": True
+        }
+        mock_scan_users.return_value = [user_data]  # Return a list of users
+
+        # Mock check_password_hash to return False (invalid password)
+        mock_check_password_hash.return_value = False
+
+        # Prepare login data with wrong password
+        login_data = {
+            "email": "test@example.com",
+            "password": "WrongPassword"
+        }
+
+        # Send POST request to /api/users/login
+        response = self.client.post(
+            '/api/users/login',
+            data=json.dumps(login_data),
+            content_type='application/json'
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 401)
+        response_json = response.get_json()
+        self.assertEqual(response_json["error"], "Invalid email or password")
+
+    @patch('app.scan_users_by_attribute')
+    @patch('app.check_password_hash')
+    def test_login_unverified_email(self, mock_check_password_hash, mock_scan_users):
+        # Mock scan_users_by_attribute to return a list containing a user
+        user_data = {
+            "id": "testuser_id",
+            "email": "test@example.com",
+            "password": "hashed_password",
+            "email_verified": False  # Email not verified
+        }
+        mock_scan_users.return_value = [user_data]  # Return a list of users
+
+        # Mock check_password_hash to return True
+        mock_check_password_hash.return_value = True
+
+        # Prepare login data
+        login_data = {
+            "email": "test@example.com",
+            "password": "TestPassword123"
+        }
+
+        # Send POST request to /api/users/login
+        response = self.client.post(
+            '/api/users/login',
+            data=json.dumps(login_data),
+            content_type='application/json'
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 403)
+        response_json = response.get_json()
+        self.assertEqual(response_json["error"], "Email not verified")
+
+    def test_logout_success(self):
+        # Use the token from self.headers to log out
+        response = self.client.post(
+            '/api/users/logout',
+            headers=self.headers
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 200)
+        response_json = response.get_json()
+        self.assertEqual(response_json["message"], "Successfully logged out")
+
+        # Try to use the same token to access a protected endpoint
+        response = self.client.get(
+            '/api/users/user_id',
+            headers=self.headers
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 401)
+        response_json = response.get_json()
+        self.assertIn("msg", response_json)
+        self.assertIn("Token has been revoked", response_json["msg"])
+
+    def test_logout_with_revoked_token(self):
+        # First, log out to revoke the token
+        response = self.client.post(
+            '/api/users/logout',
+            headers=self.headers
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Attempt to log out again with the same token
+        response = self.client.post(
+            '/api/users/logout',
+            headers=self.headers
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 401)
+        response_json = response.get_json()
+        self.assertIn("msg", response_json)
+        self.assertIn("Token has been revoked", response_json["msg"])
+
+    def test_protected_endpoint_without_token(self):
+        # Attempt to access a protected endpoint without a token
+        response = self.client.get('/api/users/user_id')
+
+        # Check the response
+        self.assertEqual(response.status_code, 401)
+        response_json = response.get_json()
+        self.assertIn("msg", response_json)
+        self.assertIn("Missing Authorization Header", response_json["msg"])
+
 if __name__ == "__main__":
     unittest.main()
