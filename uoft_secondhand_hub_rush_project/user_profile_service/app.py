@@ -4,6 +4,8 @@ from flask_jwt_extended import (
     create_access_token,
     jwt_required,
     get_jwt_identity,
+    get_jwt,
+    jwt_required,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
@@ -12,6 +14,8 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from flask_sqlalchemy import SQLAlchemy
+import datetime
 
 from utils import (
     get_user_table,
@@ -20,6 +24,8 @@ from utils import (
     scan_users_by_attribute,
     update_user,
 )
+
+db = SQLAlchemy()
 
 
 def send_verification_email(email, username, serializer):
@@ -109,9 +115,15 @@ def create_app(config_filename=None):
                 "AWS_DB_USERS_TABLE_NAME", "default_users_table"
             ),
             AWS_S3_REGION=os.getenv("AWS_S3_REGION", "us-east-2"),
+            SQLALCHEMY_DATABASE_URI=os.getenv(
+                "DATABASE_URI", "sqlite:///tokens.db"
+            ),
+            SQLALCHEMY_TRACK_MODIFICATIONS=False,
+            JWT_ACCESS_TOKEN_EXPIRES=datetime.timedelta(minutes=30),
         )
 
     # Initialize extensions
+    db.init_app(app)
     jwt = JWTManager(app)
 
     # Initialize serializer and attach to app
@@ -126,6 +138,17 @@ def create_app(config_filename=None):
 
     # Configure logging (optional but recommended)
     configure_logging(app)
+
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+
+    # Set up JWT token-in-blacklist callback
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        jti = jwt_payload["jti"]
+        token = TokenBlocklist.query.filter_by(jti=jti).first()
+        return token is not None
 
     return app
 
@@ -144,6 +167,14 @@ def configure_logging(app):
     )
     handler.setFormatter(formatter)
     app.logger.addHandler(handler)
+
+
+class TokenBlocklist(db.Model):
+    __tablename__ = "token_blocklist"
+
+    id = db.Column(db.Integer, primary_key=True)
+    jti = db.Column(db.String(36), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False)
 
 
 def register_routes(app):
@@ -184,6 +215,7 @@ def register_routes(app):
         exists_email = scan_users_by_attribute("email", email)
 
         if exists_username and exists_email:
+            assert(len(exists_username) == 1 and len(exists_email) == 1)
             app.logger.info(
                 f"Pre-registration failed: Username and email already exist for {email}"
             )
@@ -192,11 +224,13 @@ def register_routes(app):
                 400,
             )
         elif exists_username:
+            assert(len(exists_username) == 1)
             app.logger.info(
                 f"Pre-registration failed: Username already exists for {username}"
             )
             return jsonify({"error": "User with this username already exists"}), 400
         elif exists_email:
+            assert(len(exists_email) == 1)
             app.logger.info(
                 f"Pre-registration failed: Email already exists for {email}"
             )
@@ -347,9 +381,15 @@ def register_routes(app):
         if not email or not password:
             return jsonify({"error": "Email and password are required"}), 400
 
-        # Fetch user by email
-        user = scan_users_by_attribute("email", email)
-        if not user or not check_password_hash(user["password"], password):
+        # Fetch users by email (returns a list)
+        users = scan_users_by_attribute("email", email)
+        if not users or len(users) == 0:
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        # Since email should be unique, take the first user
+        user = users[0]
+
+        if not check_password_hash(user["password"], password):
             return jsonify({"error": "Invalid email or password"}), 401
 
         if not user.get("email_verified"):
@@ -357,15 +397,15 @@ def register_routes(app):
 
         # Generate a JWT token
         access_token = create_access_token(identity=user["id"])
-        return (
-            jsonify({"access_token": access_token, "message": "Login successful"}),
-            200,
-        )
+        return jsonify({"access_token": access_token, "message": "Login successful"}), 200
 
     @app.route("/api/users/logout", methods=["POST"])
     @jwt_required()
     def logout():
-        # Blacklist token if required (e.g., add token to blacklist in a DB or cache)
+        jti = get_jwt()["jti"]
+        now = datetime.datetime.utcnow()
+        db.session.add(TokenBlocklist(jti=jti, created_at=now))
+        db.session.commit()
         return jsonify({"message": "Successfully logged out"}), 200
 
     @app.route("/api/users/user_id", methods=["GET"])
