@@ -125,7 +125,7 @@ def update_listing_in_table(listing_id, update_data):
     except Exception as e:
         current_app.logger.error(f"Failed to update listing with id {listing_id}: {e}")
         return False
-
+      
 def get_listings_by_seller(seller_id):
     dynamodb = boto3.resource(
         'dynamodb',

@@ -181,6 +181,7 @@ def edit_listing(id):
         'condition': data.get('condition'),
         'category': data.get('category'),
         'images': image_urls if image_urls else None,  # only add new images if provided
+        'datePosted': data.get('datePosted'),
         'sellerId': data.get('sellerId'),
         'sellerName': data.get('sellerName')
     }
@@ -190,7 +191,7 @@ def edit_listing(id):
     
     if update_listing_in_table(id, update_data):
         return jsonify({'message': 'Listing updated successfully'}), 200
-    return jsonify({'error': 'Failed to update listing'}), 500  
+    return jsonify({'error': 'Failed to update listing'}), 500
 
 @app.route('/api/listings/user/<seller_id>', methods=['GET'])
 def get_listings_by_user(seller_id):
