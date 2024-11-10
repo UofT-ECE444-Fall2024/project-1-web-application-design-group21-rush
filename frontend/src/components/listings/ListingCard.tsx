@@ -132,9 +132,9 @@ const ListingCard: React.FC<ListingCardProps> = ({
           height="200"
           image={getImageUrl(listing)}
           alt={listing.title}
-          sx={{
-            objectFit: "cover",
-            backgroundColor: "grey.100", // Add a background color while image loads
+          sx={{ 
+            objectFit: 'cover',
+            backgroundColor: 'grey.100' // Background color while image loads
           }}
         />
 

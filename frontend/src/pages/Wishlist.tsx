@@ -9,7 +9,6 @@ import ListingCard from '../components/listings/ListingCard';
 import { listingsApi } from '../services/api';
 import { Listing } from '../types/listing';
 import { mockWishlistItems } from '../mock/listings';
-import Header from '../components/layout/Header';
 
 const Wishlist: React.FC = () => {
   const [wishlistItems, setWishlistItems] = useState<Listing[]>([]);
@@ -40,7 +39,6 @@ const Wishlist: React.FC = () => {
 
   return (
     <>
-      <Header />
       <Container maxWidth="lg">
         <Paper sx={{ p: 2, mt: 2, mb: 2 }}>
           <Typography variant="h4" gutterBottom>
