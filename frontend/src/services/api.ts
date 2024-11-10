@@ -10,6 +10,10 @@ const LISTINGS_SERVICE_URL = process.env.REACT_APP_LISTINGS_SERVICE_URL || 'http
 // Base URL for the search service
 const SEARCH_SERVICE_URL = process.env.REACT_APP_SEARCH_SERVICE_URL || 'http://localhost:5003';
 
+// Base URL for the user service
+const USER_SERVICE_URL = process.env.REACT_APP_USER_SERVICE_URL || 'http://localhost:5005';
+
+
 export const listingsApi = {
   // Function to fetch all listings from the listings service
   getListings: async () => {
@@ -41,10 +45,15 @@ export const listingsApi = {
     return response.data;
   },
 
-  addToWishlist: async (listingId: string) => {
-    const response = await axios.post(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
+  addToWishlist: async (listingId: string, token: string) => {
+    const response = await axios.post(
+        `${USER_SERVICE_URL}/wishlist`, 
+        { listingId },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
     return response.data;
-  },
+},
+
 
   removeFromWishlist: async (listingId: string) => {
     const response = await axios.delete(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
