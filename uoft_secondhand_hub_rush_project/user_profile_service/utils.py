@@ -18,6 +18,35 @@ def get_dynamodb_resource():
         aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY']
     )
 
+
+import boto3
+from botocore.exceptions import ClientError
+
+def verify_dynamodb_table_exists(table_name):
+    """
+    Checks if the specified DynamoDB table exists.
+
+    Args:
+        table_name (str): The name of the DynamoDB table.
+
+    Returns:
+        bool: True if the table exists, False otherwise.
+    """
+    dynamodb = get_dynamodb_resource()
+    try:
+        table = dynamodb.Table(table_name)
+        table.load()  # Attempt to load the table details to verify existence
+        current_app.logger.info(f"DynamoDB table '{table_name}' exists.")
+        return True
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            current_app.logger.error(f"DynamoDB table '{table_name}' not found.")
+            return False
+        else:
+            current_app.logger.error(f"An error occurred while checking table '{table_name}': {e}")
+            raise  # Re-raise if it's a different error
+
+
 def get_user_table():
     """
     Retrieves the DynamoDB table object for the users table.
@@ -25,8 +54,12 @@ def get_user_table():
     Returns:
         boto3.resources.factory.dynamodb.Table: The DynamoDB table object.
     """
+    table_name = current_app.config['AWS_DB_USERS_TABLE_NAME']
+    if not verify_dynamodb_table_exists(table_name):
+        raise ValueError(f"The DynamoDB table '{table_name}' does not exist.")
     dynamodb = get_dynamodb_resource()
-    return dynamodb.Table(current_app.config['AWS_DB_USERS_TABLE_NAME'])
+    return dynamodb.Table(table_name)
+    
 
 def convert_decimals(obj):
     """
@@ -62,7 +95,11 @@ def upload_to_user_table(user_data):
         bool: True if the upload is successful, False otherwise.
     """
     table = get_user_table()
+    current_app.logger.info(current_app.config['AWS_S3_REGION'])
+    current_app.logger.info(current_app.config['AWS_ACCESS_KEY_ID'])
+    current_app.logger.info(current_app.config['AWS_SECRET_ACCESS_KEY'])
 
+    current_app.logger.info(current_app.config['AWS_DB_USERS_TABLE_NAME'])
     # Convert float and int values to Decimal as required by DynamoDB
     for key, value in user_data.items():
         if isinstance(value, float):
