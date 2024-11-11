@@ -970,6 +970,223 @@ class TestFlaskApp(unittest.TestCase):
                 response_json["error"], "Invalid token or user does not exist"
             )
 
-        
+    @patch("app.update_user")
+    def test_edit_user_success(self, mock_update_user):
+        """
+        Test that a user can successfully update allowed fields.
+        """
+        # Mock update_user to return True, indicating a successful update
+        mock_update_user.return_value = True
+
+        # Define the data to update
+        update_data = {
+            "username": "updateduser",
+            "wishlist": ["item1", "item2"],
+            "categories": ["category1", "category2"],
+            "location": "Updated Location",
+        }
+
+        # Send POST request to /api/users/edit_user
+        response = self.client.post(
+            "/api/users/edit_user",
+            headers=self.headers,
+            data=json.dumps(update_data),
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"message": "Updated user successfully"})
+
+        # Verify that update_user was called with correct parameters
+        mock_update_user.assert_called_once_with("testuser", update_data)
+
+    def test_edit_user_no_data(self):
+        """
+        Test that the endpoint returns an error when no data is provided.
+        """
+        # Send POST request without any data
+        response = self.client.post(
+            "/api/users/edit_user",
+            headers=self.headers,
+            data=None,
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {"error": "No input data provided"})
+
+    def test_edit_user_empty_data(self):
+        """
+        Test that the endpoint returns an error when empty JSON is provided.
+        """
+        # Send POST request with empty JSON
+        response = self.client.post(
+            "/api/users/edit_user",
+            headers=self.headers,
+            data=json.dumps({}),
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {"error": "No input data provided"})
+
+    @patch("app.update_user")
+    def test_edit_user_restricted_fields(self, mock_update_user):
+        """
+        Test that attempting to modify restricted fields results in an error.
+        """
+        # Define the data with restricted fields
+        update_data = {
+            "email": "newemail@example.com",
+            "password": "NewPassword123",
+            "username": "newusername",
+        }
+
+        # Send POST request to /api/users/edit_user
+        response = self.client.post(
+            "/api/users/edit_user",
+            headers=self.headers,
+            data=json.dumps(update_data),
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 400)
+        error_message = response.get_json().get("error", "")
+
+        # Define the expected restricted fields
+        expected_fields = {"email", "password"}
+
+        # Extract fields mentioned in the error message
+        import re
+        match = re.search(r"Modification of fields (.+) is not allowed\.", error_message)
+        self.assertIsNotNone(match, "Error message format is incorrect.")
+        fields_in_message = set(map(str.strip, match.group(1).split(',')))
+
+        # Assert that all expected fields are present
+        self.assertEqual(fields_in_message, expected_fields)
+
+        # Verify that update_user was never called since request should be rejected
+        mock_update_user.assert_not_called()
+
+
+    @patch("app.update_user")
+    def test_edit_user_partial_restricted_fields(self, mock_update_user):
+        """
+        Test that attempting to modify some restricted fields along with allowed fields results in an error.
+        """
+        # Define the data with both allowed and restricted fields
+        update_data = {
+            "username": "newusername",
+            "email": "newemail@example.com",  # Restricted
+            "location": "New Location",
+        }
+
+        # Send POST request to /api/users/edit_user
+        response = self.client.post(
+            "/api/users/edit_user",
+            headers=self.headers,
+            data=json.dumps(update_data),
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Modification of fields email is not allowed.", response.get_json()["error"])
+
+        # Verify that update_user was never called since request should be rejected
+        mock_update_user.assert_not_called()
+
+    @patch("app.update_user")
+    def test_edit_user_update_failure(self, mock_update_user):
+        """
+        Test that the endpoint returns an error when the update_user function fails.
+        """
+        # Mock update_user to return False, indicating a failure
+        mock_update_user.return_value = False
+
+        # Define the data to update
+        update_data = {
+            "username": "updateduser",
+            "wishlist": ["item1", "item2"],
+            "categories": ["category1", "category2"],
+            "location": "Updated Location",
+        }
+
+        # Send POST request to /api/users/edit_user
+        response = self.client.post(
+            "/api/users/edit_user",
+            headers=self.headers,
+            data=json.dumps(update_data),
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.get_json(), {"error": "Failed to update user"})
+
+        # Verify that update_user was called with correct parameters
+        mock_update_user.assert_called_once_with("testuser", update_data)
+
+    @patch("app.update_user")
+    def test_edit_user_exception_handling(self, mock_update_user):
+        """
+        Test that the endpoint handles exceptions raised by update_user gracefully.
+        """
+        # Mock update_user to raise an Exception
+        mock_update_user.side_effect = Exception("DynamoDB Error")
+
+        # Define the data to update
+        update_data = {
+            "username": "updateduser",
+            "wishlist": ["item1", "item2"],
+            "categories": ["category1", "category2"],
+            "location": "Updated Location",
+        }
+
+        # Send POST request to /api/users/edit_user
+        response = self.client.post(
+            "/api/users/edit_user",
+            headers=self.headers,
+            data=json.dumps(update_data),
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.get_json(), {"error": "An unexpected error occurred"})
+
+        # Verify that update_user was called with correct parameters
+        mock_update_user.assert_called_once_with("testuser", update_data)
+
+    @patch("app.update_user")
+    def test_edit_user_invalid_field_types(self, mock_update_user):
+        """
+        Test how the endpoint handles invalid data types for fields.
+        For example, providing a string where a list is expected.
+        """
+        # Mock update_user to return True, assuming backend handles type validation
+        # Since invalid data should prevent update_user from being called
+        mock_update_user.return_value = True
+
+        # Define the data with invalid types
+        update_data = {
+            "username": "updateduser",
+            "wishlist": "should_be_a_list",  # Invalid type: should be a list
+            "categories": ["category1", "category2"],
+            "location": "Updated Location",
+        }
+
+        # Send POST request to /api/users/edit_user
+        response = self.client.post(
+            "/api/users/edit_user",
+            headers=self.headers,
+            data=json.dumps(update_data),
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Invalid data types for fields: wishlist", response.get_json()["error"])
+
+        # Verify that update_user was never called since validation failed
+        mock_update_user.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
