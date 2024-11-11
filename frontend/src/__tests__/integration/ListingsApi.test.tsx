@@ -19,13 +19,19 @@ describe('Listings Management - Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks(); // Reset mocks before each test
 
-    // Mock localStorage.getItem to return 'testToken' for 'token'
-    global.localStorage = {
-      getItem: jest.fn().mockReturnValue('testToken'),
-      setItem: jest.fn(),
-      removeItem: jest.fn(),
-      clear: jest.fn(),
-    } as any;
+    // Mock localStorage.getItem to return 'testToken' for 'access_token'
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: jest.fn((key: string) => {
+          if (key === 'access_token') return 'testToken';
+          return null;
+        }),
+        setItem: jest.fn(),
+        removeItem: jest.fn(),
+        clear: jest.fn(),
+      },
+      writable: true,
+    });
   });
 
   it('should retrieve all listings successfully', async () => {
@@ -48,7 +54,7 @@ describe('Listings Management - Integration Tests', () => {
 
     (axios.post as jest.Mock).mockResolvedValueOnce({ data: { message: 'Listing created successfully' } });
 
-    const response = await listingsApi.createListing(formData); // No need to pass token
+    const response = await listingsApi.createListing(formData);
     expect(response.message).toBe('Listing created successfully');
 
     expect(axios.post).toHaveBeenCalledWith(
