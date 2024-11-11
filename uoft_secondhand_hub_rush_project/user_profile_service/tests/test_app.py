@@ -580,7 +580,6 @@ class TestFlaskApp(unittest.TestCase):
         # Verify the response status code and error message
         self.assertEqual(response.status_code, 404)
         self.assertIn("User not found", response.json.get("error", ""))
-
         
 
     # Unit tests for change_password feature
@@ -971,5 +970,6 @@ class TestFlaskApp(unittest.TestCase):
                 response_json["error"], "Invalid token or user does not exist"
             )
 
+        
 if __name__ == "__main__":
     unittest.main()
