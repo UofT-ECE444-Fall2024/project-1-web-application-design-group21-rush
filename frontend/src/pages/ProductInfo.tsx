@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Grid, Typography, Paper, TextField, MenuItem, Select, FormControl, Button, InputLabel, CircularProgress, Container, Alert } from '@mui/material';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { Listing } from '../types/listing';
-import { listingsApi } from '../services/api';
+import { listingsApi, authApi } from '../services/api';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const ProductInfo: React.FC = () => {
@@ -15,6 +15,19 @@ const ProductInfo: React.FC = () => {
   const [newImage, setNewImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [user, setUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await authApi.getUserId();
+        setUser(typeof response === 'string' ? response : null);
+      } catch (error) {
+        setUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -24,6 +37,7 @@ const ProductInfo: React.FC = () => {
         setIsLoading(true);
         const data = await listingsApi.getListingById(id);
         setListing(data);
+        setEditedListing(listing);
       } catch (err) {
         console.error('Error fetching listing:', err);
         setError('Failed to fetch listing details');
@@ -31,18 +45,12 @@ const ProductInfo: React.FC = () => {
       } finally {
         setIsLoading(false);
       }
-
-      if (!listing) {
-        return <Navigate to="/" />;
-      }
-      setEditedListing(listing);
     };
 
     fetchListing();
   }, [id]);
 
  
-
   if (isLoading) {
     return (
       <>
@@ -363,6 +371,8 @@ const ProductInfo: React.FC = () => {
                 </Box>
                 </>
               )}
+              { (user === listing?.sellerId) ? (
+              <>
               <Box sx={{ marginTop: 'auto', width: '100%', display: 'flex', gap: 2}}>
                 {isEditing ? (
                   <>
@@ -402,6 +412,10 @@ const ProductInfo: React.FC = () => {
                 </>
                 )}
               </Box>
+              </>
+              ):(
+                <></>
+              )}
             </Paper>
           </Grid>
         </Grid>

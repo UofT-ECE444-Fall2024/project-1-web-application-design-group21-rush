@@ -178,4 +178,20 @@ export const authApi = {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
     }
   },
+
+  getUserId: async (): Promise<string | { error: string }> => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return { error: 'No token found' };
+
+    try { 
+      const response = await axios.get(`${USER_SERVICE_URL}/api/users/user_id`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return response.data.user_id;
+    } catch (error) {
+      return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
 };
