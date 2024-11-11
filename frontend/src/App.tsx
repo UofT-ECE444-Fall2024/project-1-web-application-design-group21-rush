@@ -17,6 +17,7 @@ import Wishlist from './pages/Wishlist';
 import Report from './pages/Report';
 import './App.css';
 import UserInterests from './pages/auth/UserInterests';
+import VerifyEmail from './pages/auth/VerifyEmail';
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path='/choose-interests-upon-signup' element={<UserInterests/>}/>
+              <Route path='/verifyEmail' element={<VerifyEmail/>}/>
               
               {/* <Route path="/" element={<Home />} /> */}
               

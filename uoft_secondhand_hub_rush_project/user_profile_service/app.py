@@ -14,6 +14,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 
@@ -91,6 +92,7 @@ def create_app(config_filename=None):
     Factory function to create and configure the Flask application.
     """
     app = Flask(__name__)
+    CORS(app)
 
     # Load configuration
     if config_filename:
@@ -368,7 +370,36 @@ def register_routes(app):
         else:
             app.logger.error(f"Failed to resend verification email to {email}")
             return jsonify({"message": "Failed to resend verification email"}), 500
+    
+    @app.route("/api/users/is_username_existing", methods=["GET"])
+    def is_username_existing():
+        # Get the 'username' parameter from the query string
+        username = request.args.get('username')
+        if not username:
+            return jsonify({"error": "Username parameter is required"}), 400
 
+        # Check if a user with this username exists
+        existing_user = scan_users_by_attribute("username", username)
+        if existing_user:
+            return jsonify({"exists": True}), 200
+        else:
+            return jsonify({"exists": False}), 200
+
+
+    @app.route("/api/users/is_email_existing", methods=["GET"])
+    def is_email_existing():
+        # Get the 'email' parameter from the query string
+        email = request.args.get('email')
+        if not email:
+            return jsonify({"error": "Email parameter is required"}), 400
+
+        # Check if a user with this email exists
+        existing_user = scan_users_by_attribute("email", email)
+        if existing_user:
+            return jsonify({"exists": True}), 200
+        else:
+            return jsonify({"exists": False}), 200
+    
     @app.route("/api/users/login", methods=["POST"])
     def login():
         data = request.get_json()

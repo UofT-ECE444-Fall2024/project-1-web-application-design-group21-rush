@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  Container, 
-  Paper, 
-  Typography, 
-  TextField, 
-  Button, 
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
   Grid,
-  Alert 
+  Alert
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Navigate } from 'react-router-dom';
+import { authApi } from '../../services/api';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -27,7 +28,6 @@ const Login: React.FC = () => {
     return <Navigate to="/" replace />;
   }
 
-  // Handle form submission
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!emailRegex.test(email)) {
@@ -38,19 +38,15 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Make an API call to the login endpoint
-      const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await authApi.loginUser({ email, password });
 
-      if (response.ok) {
-        const data = await response.json();
-        login(data.access_token); // Set the token and update auth state
-        navigate('/'); // Redirect to the root on successful login
+      if ('access_token' in response) {
+        login(response.access_token);
+        localStorage.setItem('access_token', response.access_token);
+        setAlertMsg('Login successful!');
+        setTimeout(() => navigate('/'), 1500);
       } else {
-        setAlertMsg('Invalid email or password.');
+        setAlertMsg(response.error || 'Invalid email or password.');
       }
     } catch (error) {
       console.error('Login error:', error);
