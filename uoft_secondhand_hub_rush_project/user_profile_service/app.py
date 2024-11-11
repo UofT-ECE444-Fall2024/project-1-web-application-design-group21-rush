@@ -598,6 +598,8 @@ def register_routes(app):
     def forgot_password():
         """
         Initiates the password reset process by sending a reset email to the user.
+        Required fields:
+        - email
         """
         app.logger.info("Received forgot password request")
         data = request.get_json()
