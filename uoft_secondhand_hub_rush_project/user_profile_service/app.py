@@ -531,6 +531,27 @@ def register_routes(app):
         except Exception as e:
             return jsonify({"error": "Could not access user database", "details": str(e)}), 500
 
+    @app.route("/api/users/public_user_info", methods=["GET"])
+    @jwt_required()
+    def get_public_user_info():
+        username = request.args.get("username")
+        
+        if not username:
+            return jsonify({"error": "Username parameter is required"}), 400
+        
+        users = scan_users_by_attribute("username", username)
+        if not users or len(users) == 0:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Since username should be unique, take the first user
+        user = users[0]
+        
+        # Construct public user info
+        public_fields = ['id', 'username', 'wishlist', 'categories', 'location']
+        public_user_info = {field: user.get(field) for field in public_fields if field in user}
+        
+        return jsonify(public_user_info), 200
+
     @app.route("/api/users/wishlist", methods=["POST"])
     @jwt_required()
     def add_to_wishlist():

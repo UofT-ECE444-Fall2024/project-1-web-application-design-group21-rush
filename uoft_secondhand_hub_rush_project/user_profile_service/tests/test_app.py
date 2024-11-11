@@ -1188,5 +1188,76 @@ class TestFlaskApp(unittest.TestCase):
         mock_update_user.assert_not_called()
 
 
+    @patch("app.scan_users_by_attribute")
+    def test_get_public_user_info_success(self, mock_scan_users):
+        # Mock user data to be returned by scan_users_by_attribute
+        mock_user = {
+            "id": "user123",
+            "username": "testuser",
+            "wishlist": ["item1", "item2"],
+            "categories": ["Books", "Electronics"],
+            "location": "New York",
+            "password": "hashed_password",
+            "email": "test@example.com",
+            "email_verified": True
+        }
+        mock_scan_users.return_value = [mock_user]
+
+        # Send GET request to /api/users/public_user_info with username parameter
+        response = self.client.get(
+            '/api/users/public_user_info',
+            query_string={'username': 'testuser'},
+            headers=self.headers
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+
+        # Ensure only public fields are returned
+        expected_fields = ['id', 'username', 'wishlist', 'categories', 'location']
+        self.assertTrue(all(field in data for field in expected_fields))
+        self.assertNotIn('password', data)
+        self.assertNotIn('email', data)
+        self.assertNotIn('email_verified', data)
+
+        # Check that the returned data matches the mock user
+        self.assertEqual(data['id'], mock_user['id'])
+        self.assertEqual(data['username'], mock_user['username'])
+        self.assertEqual(data['wishlist'], mock_user['wishlist'])
+        self.assertEqual(data['categories'], mock_user['categories'])
+        self.assertEqual(data['location'], mock_user['location'])
+
+    def test_get_public_user_info_missing_username(self):
+        # Send GET request without username parameter
+        response = self.client.get(
+            '/api/users/public_user_info',
+            headers=self.headers
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertIn('error', data)
+        self.assertEqual(data['error'], 'Username parameter is required')
+
+    @patch("app.scan_users_by_attribute")
+    def test_get_public_user_info_user_not_found(self, mock_scan_users):
+        # Mock scan_users_by_attribute to return no users
+        mock_scan_users.return_value = []
+
+        # Send GET request with a username that does not exist
+        response = self.client.get(
+            '/api/users/public_user_info',
+            query_string={'username': 'nonexistentuser'},
+            headers=self.headers
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertIn('error', data)
+        self.assertEqual(data['error'], 'User not found')
+
 if __name__ == "__main__":
     unittest.main()
