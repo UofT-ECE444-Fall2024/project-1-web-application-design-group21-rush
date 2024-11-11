@@ -477,35 +477,59 @@ def register_routes(app):
             200,
         )
 
-@app.route("/api/users/edit_user", methods=["POST"])
-@jwt_required()
-def edit_user():
-    user_id = get_jwt_identity()
-    data = request.get_json(silent=True)
+    @app.route("/api/users/edit_user", methods=["POST"])
+    @jwt_required()
+    def edit_user():
+        user_id = get_jwt_identity()
+        data = request.get_json(silent=True)
 
-    if not data:
-        return jsonify({"error": "No input data provided"}), 400
+        if not data:
+            return jsonify({"error": "No input data provided"}), 400
 
-    # Define fields that are allowed to be updated
-    allowed_fields = {"username", "wishlist", "categories", "location"}
+        # Define fields that are allowed to be updated and their expected types
+        allowed_fields = {
+            "username": str,
+            "wishlist": list,
+            "categories": list,
+            "location": str,
+        }
 
-    # Identify any disallowed fields in the input
-    disallowed_fields = set(data.keys()) - allowed_fields
+        # Identify any disallowed fields in the input
+        disallowed_fields = set(data.keys()) - set(allowed_fields.keys())
 
-    if disallowed_fields:
-        current_app.logger.warning(
-            f"User {user_id} attempted to modify restricted fields: {disallowed_fields}"
-        )
-        return jsonify({
-            "error": f"Modification of fields {', '.join(disallowed_fields)} is not allowed."
-        }), 400
+        if disallowed_fields:
+            current_app.logger.warning(
+                f"User {user_id} attempted to modify restricted fields: {disallowed_fields}"
+            )
+            return jsonify({
+                "error": f"Modification of fields {', '.join(disallowed_fields)} is not allowed."
+            }), 400
 
-    # Proceed to update with only allowed fields
-    if update_user(user_id, data):
-        return jsonify({"message": "Updated user successfully"}), 200
-    else:
-        return jsonify({"error": "Failed to update user"}), 500
+        # Validate data types
+        invalid_fields = []
+        for field, expected_type in allowed_fields.items():
+            if field in data and not isinstance(data[field], expected_type):
+                invalid_fields.append(field)
 
+        if invalid_fields:
+            current_app.logger.warning(
+                f"User {user_id} provided invalid types for fields: {invalid_fields}"
+            )
+            return jsonify({
+                "error": f"Invalid data types for fields: {', '.join(invalid_fields)}"
+            }), 400
+
+        # Proceed to update with only allowed fields
+        try:
+            if update_user(user_id, data):
+                current_app.logger.info(f"User {user_id} updated successfully with data: {data}")
+                return jsonify({"message": "Updated user successfully"}), 200
+            else:
+                current_app.logger.error(f"Failed to update user {user_id} with data: {data}")
+                return jsonify({"error": "Failed to update user"}), 500
+        except Exception as e:
+            current_app.logger.exception(f"An error occurred while updating user {user_id}: {e}")
+            return jsonify({"error": "An unexpected error occurred"}), 500
 
 if __name__ == "__main__":
     app = create_app()
