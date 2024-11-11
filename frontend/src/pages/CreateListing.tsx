@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { listingsApi } from '../services/api';
+import { listingsApi, authApi } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const CreateListing: React.FC = () => {
@@ -107,7 +107,15 @@ const CreateListing: React.FC = () => {
       formData.append('datePosted', new Date().toISOString());
       
       // TODO: Get these from auth context once implemented
-      formData.append('sellerId', 'temp-user-id');
+      try {
+        const userId = await authApi.getUserId();
+        if (typeof userId === 'string') {
+          formData.append('sellerId', userId);
+        }
+      } catch (error) {
+        console.error('Error fetching user ID:', error);
+      }
+
       formData.append('sellerName', 'Temporary User');
 
       // Add all images
