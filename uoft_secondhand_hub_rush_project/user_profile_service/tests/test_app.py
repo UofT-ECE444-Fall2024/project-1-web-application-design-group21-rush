@@ -562,10 +562,23 @@ class TestFlaskApp(unittest.TestCase):
 
         # Check the response
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Modification of fields email, password is not allowed.", response.get_json()["error"])
+        error_message = response.get_json().get("error", "")
+
+        # Define the expected restricted fields
+        expected_fields = {"email", "password"}
+
+        # Extract fields mentioned in the error message
+        import re
+        match = re.search(r"Modification of fields (.+) is not allowed\.", error_message)
+        self.assertIsNotNone(match, "Error message format is incorrect.")
+        fields_in_message = set(map(str.strip, match.group(1).split(',')))
+
+        # Assert that all expected fields are present
+        self.assertEqual(fields_in_message, expected_fields)
 
         # Verify that update_user was never called since request should be rejected
         mock_update_user.assert_not_called()
+
 
     @patch("app.update_user")
     def test_edit_user_partial_restricted_fields(self, mock_update_user):
@@ -628,7 +641,7 @@ class TestFlaskApp(unittest.TestCase):
         """
         Test that the endpoint handles exceptions raised by update_user gracefully.
         """
-        # Mock update_user to raise an exception
+        # Mock update_user to raise an Exception
         mock_update_user.side_effect = Exception("DynamoDB Error")
 
         # Define the data to update
@@ -648,7 +661,7 @@ class TestFlaskApp(unittest.TestCase):
 
         # Check the response
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.get_json(), {"error": "Failed to update user"})
+        self.assertEqual(response.get_json(), {"error": "An unexpected error occurred"})
 
         # Verify that update_user was called with correct parameters
         mock_update_user.assert_called_once_with("testuser", update_data)
@@ -656,16 +669,17 @@ class TestFlaskApp(unittest.TestCase):
     @patch("app.update_user")
     def test_edit_user_invalid_field_types(self, mock_update_user):
         """
-        (Optional) Test how the endpoint handles invalid data types for fields.
+        Test how the endpoint handles invalid data types for fields.
         For example, providing a string where a list is expected.
         """
         # Mock update_user to return True, assuming backend handles type validation
+        # Since invalid data should prevent update_user from being called
         mock_update_user.return_value = True
 
         # Define the data with invalid types
         update_data = {
             "username": "updateduser",
-            "wishlist": "should_be_a_list",  # Invalid type
+            "wishlist": "should_be_a_list",  # Invalid type: should be a list
             "categories": ["category1", "category2"],
             "location": "Updated Location",
         }
@@ -677,16 +691,12 @@ class TestFlaskApp(unittest.TestCase):
             data=json.dumps(update_data),
         )
 
-        # Depending on your implementation, this might pass or fail.
-        # Assuming that the backend validates data types and returns 400 for invalid types.
-
-        # For demonstration, let's assume it fails
+        # Check the response
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Invalid data types provided", response.get_json()["error"])
+        self.assertIn("Invalid data types for fields: wishlist", response.get_json()["error"])
 
         # Verify that update_user was never called since validation failed
         mock_update_user.assert_not_called()
-
 
 if __name__ == "__main__":
     unittest.main()
