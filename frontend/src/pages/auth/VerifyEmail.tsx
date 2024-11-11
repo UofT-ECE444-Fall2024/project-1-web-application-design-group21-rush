@@ -72,7 +72,12 @@ const VerifyEmail: React.FC = () => {
         const emailExists = await authApi.isEmailExisting(email);
         if (emailExists && 'exists' in emailExists && emailExists.exists) {
           clearInterval(intervalId);
-          navigate('/');
+          navigate('/login', { 
+            state: { 
+              email, 
+              message: 'You have successfully created your account.' 
+            } 
+          });
         }
       } catch (error) {
         console.error('Error checking email existence:', error);
