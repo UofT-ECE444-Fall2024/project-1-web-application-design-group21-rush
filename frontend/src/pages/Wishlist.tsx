@@ -9,17 +9,43 @@ import ListingCard from '../components/listings/ListingCard';
 import { listingsApi } from '../services/api';
 import { Listing } from '../types/listing';
 import { mockWishlistItems } from '../mock/listings';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Wishlist: React.FC = () => {
   const [wishlistItems, setWishlistItems] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated, getToken } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulate API call with mock data
-    setWishlistItems(mockWishlistItems);
-    setIsLoading(false);
-  }, []);
+    const fetchWishlist = async () => {
+      if (!isAuthenticated) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const token = getToken();
+        if (!token) {
+          setError('Authentication required');
+          return;
+        }
+
+        const items = await listingsApi.getWishlistItems(token);
+        setWishlistItems(items);
+      } catch (err) {
+        console.error('Error fetching wishlist:', err);
+        setError('Failed to fetch wishlist items');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWishlist();
+  }, [isAuthenticated, navigate, getToken]);
 
   if (isLoading) {
     return (

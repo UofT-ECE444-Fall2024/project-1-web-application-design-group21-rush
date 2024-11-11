@@ -514,6 +514,18 @@ def register_routes(app):
         user_id = get_jwt_identity()
         return jsonify({"user_id": user_id}), 200
 
+    @app.route("/api/users/wishlist/get", methods=["GET"])
+    @jwt_required()
+    def get_wishlist():
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        wishlist = user.get("wishlist", [])
+        return jsonify({"wishlist": wishlist}), 200
+
     @app.route("/api/users/user_info", methods=["GET"])
     @jwt_required()
     def get_user_info():
@@ -534,10 +546,9 @@ def register_routes(app):
     @app.route("/api/users/wishlist", methods=["POST"])
     @jwt_required()
     def add_to_wishlist():
-        # This retrieves the user ID stored in the JWT token
         user_id = get_jwt_identity()
-        data = request.get_json(silent=True)
-
+        data = request.get_json()
+        
         if not data or "listingId" not in data:
             return jsonify({"error": "Listing ID is required"}), 400
 
@@ -548,19 +559,38 @@ def register_routes(app):
         if not user:
             return jsonify({"error": "User not found"}), 404
 
+        # Initialize wishlist as list if it doesn't exist or is a string
+        if not user.get("wishlist") or isinstance(user["wishlist"], str):
+            user["wishlist"] = []
+        
         # Update the user's wishlist
-        wishlist = user.get("wishlist", [])
-        if listing_id not in wishlist:
-            wishlist.append(listing_id)
+        if listing_id not in user["wishlist"]:
+            user["wishlist"].append(listing_id)
 
-        success = update_user(user_id, {"wishlist": wishlist})
+        success = update_user(user_id, {"wishlist": user["wishlist"]})
         if not success:
             return jsonify({"error": "Failed to update wishlist"}), 500
 
         return (
-            jsonify({"message": "Listing added to wishlist", "wishlist": wishlist}),
+            jsonify({"message": "Listing added to wishlist", "wishlist": user["wishlist"]}),
             200,
         )
+
+    @app.route("/api/users/wishlist/<listing_id>", methods=["DELETE"])
+    @jwt_required()
+    def remove_from_wishlist(listing_id):
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        wishlist = user.get("wishlist", [])
+        if listing_id in wishlist:
+            wishlist.remove(listing_id)
+            update_user(user_id, {"wishlist": wishlist})
+            
+        return jsonify({"message": "Removed from wishlist", "wishlist": wishlist}), 200
 
     @app.route("/api/users/edit_user", methods=["POST"])
     @jwt_required()
@@ -788,4 +818,4 @@ def register_routes(app):
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(port=5000, debug=True)
+    app.run(port=5005, debug=True)
