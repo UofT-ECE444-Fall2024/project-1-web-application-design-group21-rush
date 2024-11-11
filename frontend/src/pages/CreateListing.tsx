@@ -58,8 +58,11 @@ const CreateListing: React.FC = () => {
         }
 
         const response = await userApi.getUserProfile(token);
+        const userId = await userApi.getUserID(token);
         console.log('User profile response:', response);
-        setUserId(response.user_id);
+        setUserName(response.username);
+        setUserId(userId);
+        //setUserId(response.user_id);
       } catch (err) {
         console.error('Error fetching user profile:', err);
         setError('Failed to fetch user information');
@@ -155,7 +158,16 @@ const CreateListing: React.FC = () => {
         console.error('Error fetching user ID:', error);
       }
 
-      formData.append('sellerName', 'Temporary User');
+      try {
+        const userId = await authApi.getUserId();
+        if (typeof userName === 'string') {
+          formData.append('sellerName', userName);
+        }
+      } catch (error) {
+        console.error('Error fetching user ID:', error);
+      }
+
+      //formData.append('sellerName', 'Temporary User');
 
       // Add all images
       listing.images.forEach((file) => {
