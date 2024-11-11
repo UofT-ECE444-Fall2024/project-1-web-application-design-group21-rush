@@ -37,19 +37,20 @@ export const listingsApi = {
   },
 
   createListing: async (listingData: FormData) => {
-    const token = localStorage.getItem('token'); // Get token from localStorage
+    const token = localStorage.getItem('access_token'); // Get token from localStorage
     const response = await axios.post<Listing>(
       `${LISTINGS_SERVICE_URL}/api/listings/create-listing`,
       listingData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
       }
     );
     return response.data;
   },
+  
 
   getWishlistItems: async (token: string) => {
     try {
