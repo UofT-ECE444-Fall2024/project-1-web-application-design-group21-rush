@@ -20,6 +20,7 @@ import { listingsApi } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
 
+
 interface ListingCardProps {
   listing: Listing;
   context?: "home" | "recommended" | "wishlist";
@@ -52,6 +53,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
       } else {
         await addToWishlist(listing);
       }
+
     } catch (error) {
       console.error('Error updating wishlist:', error);
     } finally {
@@ -70,6 +72,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
       navigate(`/productInfo/${listing.id}`);
     }
     return;
+
   };
 
   const handleLoginClick = () => {
@@ -142,6 +145,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
           onClick={handleWishlistClick}
         >
           {isItemWishlisted(listing.id) ? (
+
             <FaHeart color="#ff4444" size={20} />
           ) : (
             <FaRegHeart color="#666666" size={20} />

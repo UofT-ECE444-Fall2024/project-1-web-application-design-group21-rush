@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -9,21 +9,35 @@ import {
   Alert
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate, Navigate } from 'react-router-dom';
+
+import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { authApi } from '../../services/api';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [alertMsg, setAlertMsg] = useState(''); // Show error messages if login fails
+
+  const [alertMsg, setAlertMsg] = useState(''); // Show success or error messages
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-
+  const location = useLocation();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Email format checker
 
+  // Retrieve email and success message from location state
+  const state = location.state as { email?: string; message?: string } | undefined;
+
+  // Set the email and alert message if passed from VerifyEmail
+  useEffect(() => {
+    if (state?.email) {
+      setEmail(state.email);
+    }
+    if (state?.message) {
+      setAlertMsg(state.message);
+    }
+  }, [state]);
+
   // Redirect to the root if the user is already authenticated
-  console.log("login page isAuth:", isAuthenticated)
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
@@ -67,7 +81,8 @@ const Login: React.FC = () => {
         </Typography>
 
         {alertMsg && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+
+          <Alert severity="success" sx={{ mb: 2 }}>
             {alertMsg}
           </Alert>
         )}
