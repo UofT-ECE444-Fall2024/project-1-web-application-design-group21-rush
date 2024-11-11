@@ -38,7 +38,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
     e.stopPropagation(); // Prevent card click event from firing
 
     // Always show login dialog for wishlist actions if not in authenticated 
-    if (isAuthenticated) {
+    if (!isAuthenticated) {
       setShowLoginDialog(true);
       return;
     }
