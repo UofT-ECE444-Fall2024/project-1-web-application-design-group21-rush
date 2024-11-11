@@ -51,24 +51,64 @@ export const listingsApi = {
     return response.data;
   },
 
-  getWishlistItems: async () => {
-    const response = await axios.get<Listing[]>(`${LISTINGS_SERVICE_URL}/wishlist`);
-    return response.data;
+  getWishlistItems: async (token: string) => {
+    try {
+      const response = await axios.get(
+        `${USER_SERVICE_URL}/api/users/wishlist/get`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      
+      // Debug log to see the response structure
+      console.log('Wishlist response:', response.data);
+      
+      // Make sure we're accessing the wishlist array correctly
+      const listingIds = response.data.wishlist || [];
+      
+      // Check if we have any listing IDs
+      if (listingIds.length === 0) {
+        return [];
+      }
+      
+      // Fetch full listing details for each ID
+      const listingPromises = listingIds.map((id: string) => 
+        listingsApi.getListingById(id)
+      );
+      
+      const listings = await Promise.all(listingPromises);
+      return listings;
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+      throw error;
+    }
   },
 
   addToWishlist: async (listingId: string, token: string) => {
-    const response = await axios.post(
-      `${USER_SERVICE_URL}/wishlist`,
-      { listingId },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
+    try {
+      const response = await axios.post(
+        `${USER_SERVICE_URL}/api/users/wishlist`,
+        { listingId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      throw error;
+    }
   },
 
-
-  removeFromWishlist: async (listingId: string) => {
-    const response = await axios.delete(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
-    return response.data;
+  removeFromWishlist: async (listingId: string, token: string) => {
+    try {
+      const response = await axios.delete(
+        `${USER_SERVICE_URL}/api/users/wishlist/${listingId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      throw error;
+    }
   },
 
   getListingById: async (id: string) => {

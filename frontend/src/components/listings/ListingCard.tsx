@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardMedia,
@@ -28,14 +28,34 @@ const ListingCard: React.FC<ListingCardProps> = ({
   listing,
   context = "home",
 }) => {
-  const [isWishlisted, setIsWishlisted] = React.useState(false);
-  const [showLoginDialog, setShowLoginDialog] = React.useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
 
-  const { isAuthenticated, getToken } = useAuth(); // Access getToken from authProvider
+  const { isAuthenticated, getToken } = useAuth();
+
+  // Check if item is in wishlist on component mount
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (!isAuthenticated) return;
+      
+      try {
+        const token = getToken();
+        if (!token) return;
+        
+        const wishlistItems = await listingsApi.getWishlistItems(token);
+        setIsWishlisted(wishlistItems.some(item => item.id === listing.id));
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    };
+
+    checkWishlistStatus();
+  }, [isAuthenticated, listing.id, getToken]);
 
   const handleWishlistClick = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click event from firing
+    e.stopPropagation();
 
     if (!isAuthenticated) {
       setShowLoginDialog(true);
@@ -44,20 +64,22 @@ const ListingCard: React.FC<ListingCardProps> = ({
 
     const token = getToken();
     if (!token) {
-      console.error("No token available");
       setShowLoginDialog(true);
       return;
     }
 
     try {
+      setIsUpdating(true);
       if (isWishlisted) {
-        await listingsApi.removeFromWishlist(listing.id);
+        await listingsApi.removeFromWishlist(listing.id, token);
       } else {
         await listingsApi.addToWishlist(listing.id, token);
       }
       setIsWishlisted(!isWishlisted);
     } catch (error) {
-      console.error("Error updating wishlist:", error);
+      console.error('Error updating wishlist:', error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
