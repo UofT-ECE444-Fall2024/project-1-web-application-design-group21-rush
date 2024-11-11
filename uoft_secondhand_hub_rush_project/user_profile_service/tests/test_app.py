@@ -1215,16 +1215,16 @@ class TestFlaskApp(unittest.TestCase):
         data = json.loads(response.data)
 
         # Ensure only public fields are returned
-        expected_fields = ['id', 'username', 'wishlist', 'categories', 'location']
+        expected_fields = ['id', 'username', 'email', 'categories', 'location']
         self.assertTrue(all(field in data for field in expected_fields))
         self.assertNotIn('password', data)
-        self.assertNotIn('email', data)
+        self.assertNotIn('wishlist', data)
         self.assertNotIn('email_verified', data)
 
         # Check that the returned data matches the mock user
         self.assertEqual(data['id'], mock_user['id'])
         self.assertEqual(data['username'], mock_user['username'])
-        self.assertEqual(data['wishlist'], mock_user['wishlist'])
+        self.assertEqual(data['email'], mock_user['email'])
         self.assertEqual(data['categories'], mock_user['categories'])
         self.assertEqual(data['location'], mock_user['location'])
 

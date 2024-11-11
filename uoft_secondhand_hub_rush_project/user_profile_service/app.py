@@ -547,7 +547,7 @@ def register_routes(app):
         user = users[0]
         
         # Construct public user info
-        public_fields = ['id', 'username', 'wishlist', 'categories', 'location']
+        public_fields = ['id', 'username', 'email', 'categories', 'location']
         public_user_info = {field: user.get(field) for field in public_fields if field in user}
         
         return jsonify(public_user_info), 200
