@@ -1,7 +1,7 @@
 # tests/test_app.py
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY
 import json
 import os
 from dotenv import load_dotenv
@@ -480,6 +480,395 @@ class TestFlaskApp(unittest.TestCase):
         response_json = response.get_json()
         self.assertIn("msg", response_json)
         self.assertIn("Missing Authorization Header", response_json["msg"])
+
+
+    # Unit tests for change_password feature
+    @patch("app.update_user")
+    @patch("app.check_password_hash")
+    @patch("app.get_user_by_id")
+    def test_change_password_success(
+        self, mock_get_user_by_id, mock_check_password_hash, mock_update_user
+    ):
+        # Simulate user data
+        user_data = {
+            "id": "testuser_id",
+            "username": "testuser",
+            "password": "hashed_old_password",  # Old hashed password
+        }
+        # Mock get_user_by_id to return user data
+        mock_get_user_by_id.return_value = user_data
+
+        # Mock check_password_hash to return True when checking old password
+        mock_check_password_hash.return_value = True
+
+        # Mock update_user to return True
+        mock_update_user.return_value = True
+
+        # Prepare data
+        data = {
+            "old_password": "OldPassword123",
+            "new_password": "NewPassword456",
+        }
+
+        # Generate a token with identity "testuser_id"
+        with self.app.app_context():
+            access_token = create_access_token(identity="testuser_id")
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        # Send POST request to /api/users/change_password
+        response = self.client.post(
+            "/api/users/change_password",
+            headers=headers,
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 200)
+        response_json = response.get_json()
+        self.assertEqual(response_json["message"], "Password changed successfully")
+
+        # Verify that check_password_hash was called with correct parameters
+        mock_check_password_hash.assert_called_with(
+            "hashed_old_password", "OldPassword123"
+        )
+
+        # Verify that update_user was called with correct parameters
+        mock_update_user.assert_called_with("testuser_id", {"password": ANY})
+
+    @patch("app.check_password_hash")
+    @patch("app.get_user_by_id")
+    def test_change_password_incorrect_old_password(
+        self, mock_get_user_by_id, mock_check_password_hash
+    ):
+        # Simulate user data
+        user_data = {
+            "id": "testuser_id",
+            "username": "testuser",
+            "password": "hashed_old_password",  # Old hashed password
+        }
+        # Mock get_user_by_id to return user data
+        mock_get_user_by_id.return_value = user_data
+
+        # Mock check_password_hash to return False when checking old password
+        mock_check_password_hash.return_value = False
+
+        # Prepare data
+        data = {
+            "old_password": "WrongOldPassword",
+            "new_password": "NewPassword456",
+        }
+
+        # Generate a token with identity "testuser_id"
+        with self.app.app_context():
+            access_token = create_access_token(identity="testuser_id")
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        # Send POST request to /api/users/change_password
+        response = self.client.post(
+            "/api/users/change_password",
+            headers=headers,
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 401)
+        response_json = response.get_json()
+        self.assertEqual(response_json["error"], "Incorrect old password")
+
+        # Verify that check_password_hash was called with correct parameters
+        mock_check_password_hash.assert_called_with(
+            "hashed_old_password", "WrongOldPassword"
+        )
+
+    @patch("app.check_password_hash")
+    @patch("app.get_user_by_id")
+    def test_change_password_same_old_and_new_password(
+        self, mock_get_user_by_id, mock_check_password_hash
+    ):
+        # Simulate user data
+        user_data = {
+            "id": "testuser_id",
+            "username": "testuser",
+            "password": "hashed_old_password",  # Old hashed password
+        }
+        # Mock get_user_by_id to return user data
+        mock_get_user_by_id.return_value = user_data
+
+        # Mock check_password_hash to return True when checking old password
+        mock_check_password_hash.return_value = True
+
+        # Prepare data where old_password and new_password are the same
+        data = {
+            "old_password": "SamePassword",
+            "new_password": "SamePassword",
+        }
+
+        # Generate a token with identity "testuser_id"
+        with self.app.app_context():
+            access_token = create_access_token(identity="testuser_id")
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        # Send POST request to /api/users/change_password
+        response = self.client.post(
+            "/api/users/change_password",
+            headers=headers,
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 400)
+        response_json = response.get_json()
+        self.assertEqual(response_json["error"], "New password must be different")
+
+    def test_change_password_missing_fields(self):
+        # Prepare data missing old_password and new_password
+        data = {}
+
+        # Generate a token with identity "testuser_id"
+        with self.app.app_context():
+            access_token = create_access_token(identity="testuser_id")
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        # Send POST request to /api/users/change_password
+        response = self.client.post(
+            "/api/users/change_password",
+            headers=headers,
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 400)
+        response_json = response.get_json()
+        self.assertEqual(
+            response_json["error"], "Old password and new password are required"
+        )
+
+    # Unit tests for forgot_password feature
+    @patch("app.send_password_reset_email")
+    @patch("app.scan_users_by_attribute")
+    def test_forgot_password_success(
+        self, mock_scan_users, mock_send_password_reset_email
+    ):
+        # Mock scan_users_by_attribute to return user
+        user_data = {
+            "id": "testuser_id",
+            "username": "testuser",
+            "email": "test@example.com",
+        }
+        mock_scan_users.return_value = [user_data]
+
+        # Mock send_password_reset_email to return token
+        mock_send_password_reset_email.return_value = "test-reset-token"
+
+        # Prepare data
+        data = {
+            "email": "test@example.com"
+        }
+
+        # Send POST request to /api/users/forgot_password
+        response = self.client.post(
+            "/api/users/forgot_password",
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 200)
+        response_json = response.get_json()
+        self.assertEqual(
+            response_json["message"],
+            "If the email exists, a reset link has been sent.",
+        )
+
+        # Verify that send_password_reset_email was called
+        mock_send_password_reset_email.assert_called_with(
+            "test@example.com", "testuser", self.app.serializer
+        )
+
+    def test_forgot_password_email_not_provided(self):
+        # Prepare data without email
+        data = {}
+
+        # Send POST request to /api/users/forgot_password
+        response = self.client.post(
+            "/api/users/forgot_password",
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 400)
+        response_json = response.get_json()
+        self.assertEqual(response_json["error"], "Email is required")
+
+    @patch("app.scan_users_by_attribute")
+    def test_forgot_password_user_not_found(self, mock_scan_users):
+        # Mock scan_users_by_attribute to return empty list
+        mock_scan_users.return_value = []
+
+        # Prepare data
+        data = {
+            "email": "nonexistent@example.com"
+        }
+
+        # Send POST request to /api/users/forgot_password
+        response = self.client.post(
+            "/api/users/forgot_password",
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 200)
+        response_json = response.get_json()
+        self.assertEqual(
+            response_json["message"],
+            "If the email exists, a reset link has been sent.",
+        )
+
+    # Unit tests for reset_password feature
+    @patch("app.update_user")
+    @patch("app.scan_users_by_attribute")
+    def test_reset_password_success(self, mock_scan_users, mock_update_user):
+        # Mock serializer.loads to return email
+        with patch.object(self.app.serializer, "loads", return_value="test@example.com"):
+            # Mock scan_users_by_attribute to return user
+            user_data = {
+                "id": "testuser_id",
+                "email": "test@example.com",
+            }
+            mock_scan_users.return_value = [user_data]
+
+            # Mock update_user to return True
+            mock_update_user.return_value = True
+
+            # Prepare data
+            data = {
+                "new_password": "NewPassword123"
+            }
+
+            # Send POST request to /api/users/reset_password/<token>
+            response = self.client.post(
+                "/api/users/reset_password/test-token",
+                data=json.dumps(data),
+                content_type="application/json",
+            )
+
+            # Check response
+            self.assertEqual(response.status_code, 200)
+            response_json = response.get_json()
+            self.assertEqual(
+                response_json["message"], "Password has been reset successfully"
+            )
+
+            # Verify that update_user was called with correct parameters
+            mock_update_user.assert_called_with("testuser_id", {"password": ANY})
+
+    def test_reset_password_invalid_token(self):
+        # Mock serializer.loads to raise BadSignature
+        with patch.object(
+            self.app.serializer, "loads", side_effect=BadSignature("Invalid signature")
+        ):
+            # Prepare data
+            data = {
+                "new_password": "NewPassword123"
+            }
+
+            # Send POST request to /api/users/reset_password/<invalid_token>
+            response = self.client.post(
+                "/api/users/reset_password/invalid-token",
+                data=json.dumps(data),
+                content_type="application/json",
+            )
+
+            # Check response
+            self.assertEqual(response.status_code, 400)
+            response_json = response.get_json()
+            self.assertEqual(response_json["error"], "Invalid reset link")
+
+    def test_reset_password_expired_token(self):
+        # Mock serializer.loads to raise SignatureExpired
+        with patch.object(
+            self.app.serializer, "loads", side_effect=SignatureExpired("Signature expired")
+        ):
+            # Prepare data
+            data = {
+                "new_password": "NewPassword123"
+            }
+
+            # Send POST request to /api/users/reset_password/expired-token
+            response = self.client.post(
+                "/api/users/reset_password/expired-token",
+                data=json.dumps(data),
+                content_type="application/json",
+            )
+
+            # Check response
+            self.assertEqual(response.status_code, 400)
+            response_json = response.get_json()
+            self.assertEqual(response_json["error"], "Reset link has expired")
+
+    def test_reset_password_missing_new_password(self):
+        # Mock serializer.loads to return email
+        with patch.object(self.app.serializer, "loads", return_value="test@example.com"):
+            # Prepare data without new_password
+            data = {}
+
+            # Send POST request to /api/users/reset_password/<token>
+            response = self.client.post(
+                "/api/users/reset_password/test-token",
+                data=json.dumps(data),
+                content_type="application/json",
+            )
+
+            # Check response
+            self.assertEqual(response.status_code, 400)
+            response_json = response.get_json()
+            self.assertEqual(response_json["error"], "New password is required")
+
+    @patch("app.scan_users_by_attribute")
+    def test_reset_password_user_not_found(self, mock_scan_users):
+        # Mock serializer.loads to return email
+        with patch.object(
+            self.app.serializer, "loads", return_value="nonexistent@example.com"
+        ):
+            # Mock scan_users_by_attribute to return empty list
+            mock_scan_users.return_value = []
+
+            # Prepare data
+            data = {
+                "new_password": "NewPassword123"
+            }
+
+            # Send POST request to /api/users/reset_password/<token>
+            response = self.client.post(
+                "/api/users/reset_password/test-token",
+                data=json.dumps(data),
+                content_type="application/json",
+            )
+
+            # Check response
+            self.assertEqual(response.status_code, 400)
+            response_json = response.get_json()
+            self.assertEqual(
+                response_json["error"], "Invalid token or user does not exist"
+            )
 
 if __name__ == "__main__":
     unittest.main()
