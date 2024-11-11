@@ -84,6 +84,13 @@ const Header: React.FC = () => {
         ) : (
           <>
             <Button 
+              onClick={() => handleNavigation('/recommended')}
+              sx={buttonStyle}
+            >
+              Recommended
+            </Button>
+
+            <Button 
               onClick={() => handleNavigation('/wishlist')}
               sx={buttonStyle}
             >

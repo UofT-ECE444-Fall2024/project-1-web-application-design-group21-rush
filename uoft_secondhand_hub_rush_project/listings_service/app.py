@@ -232,6 +232,6 @@ def get_listing_by_id_endpoint(id):
         return jsonify({'error': 'Failed to fetch listing'}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5001)
 
 
