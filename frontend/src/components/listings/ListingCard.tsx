@@ -37,8 +37,8 @@ const ListingCard: React.FC<ListingCardProps> = ({
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event from firing
 
-    // Always show login dialog for wishlist actions if not in recommended context
-    if (context !== "recommended") {
+    // Always show login dialog for wishlist actions if not in authenticated 
+    if (isAuthenticated) {
       setShowLoginDialog(true);
       return;
     }
@@ -69,17 +69,15 @@ const ListingCard: React.FC<ListingCardProps> = ({
   };
 
   const handleCardClick = () => {
-    // If in home context, show login dialog
-    if (context === "home") {
+    // If not logged in context, show login dialog
+    if (!isAuthenticated) {
       setShowLoginDialog(true);
-      return;
     }
-
-    // If in recommended context (user is logged in), navigate to product info
-    if (context === "recommended") {
+    else {
+      // If user is logged in, navigate to product info
       navigate(`/productInfo/${listing.id}`);
     }
-
+    return;
     // Wishlist context behavior will be implemented later
   };
 

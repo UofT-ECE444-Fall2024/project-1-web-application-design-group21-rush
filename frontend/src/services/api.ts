@@ -63,7 +63,6 @@ export const listingsApi = {
     return response.data;
   },
 
-
   removeFromWishlist: async (listingId: string) => {
     const response = await axios.delete(`${LISTINGS_SERVICE_URL}/wishlist/${listingId}`);
     return response.data;
@@ -72,6 +71,32 @@ export const listingsApi = {
   getListingById: async (id: string) => {
     const response = await axios.get<{ listing: Listing }>(`${LISTINGS_SERVICE_URL}/api/listings/${id}`);
     return response.data.listing;
+  },
+
+  editListing: async (id: string, listingData: FormData) => {
+    const response = await axios.put<Listing>(
+      `${LISTINGS_SERVICE_URL}/api/listings/edit/${id}`,
+      listingData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
+
+  // deleteListing: async (id: string) => {
+  //   const response = await axios.delete(`${LISTINGS_SERVICE_URL}/api/listings/delete/${id}`);
+  //   return response.data;
+  // },
+  deleteListing: async (id: string) => {
+    try {
+      const response = await axios.delete(`${LISTINGS_SERVICE_URL}/api/listings/delete/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      throw new Error(axios.isAxiosError(error) ? error.response?.data?.message || 'Failed to delete listing' : 'Failed to delete listing');
+    }
   },
 };
 export const authApi = {
