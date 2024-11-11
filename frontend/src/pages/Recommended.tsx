@@ -98,7 +98,7 @@ const Recommended: React.FC = () => {
   if (isLoading) {
     return (
       <>
-        <Header />
+        {/* <Header /> */}
         <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
           <CircularProgress />
         </Container>
@@ -109,7 +109,7 @@ const Recommended: React.FC = () => {
   if (error) {
     return (
       <>
-        <Header />
+        {/* <Header /> */}
         <Container sx={{ mt: 4 }}>
           <Alert severity="error">{error}</Alert>
         </Container>
@@ -119,7 +119,7 @@ const Recommended: React.FC = () => {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <Container maxWidth="lg">
         {/* User Interests and Sort Section */}
         <Paper sx={{ p: 2, mt: 2, mb: 2 }}>

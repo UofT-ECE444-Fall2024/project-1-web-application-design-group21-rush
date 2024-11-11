@@ -37,8 +37,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event from firing
 
-    // Always show login dialog for wishlist actions if not in recommended context
-    if (context !== "recommended") {
+    if (!isAuthenticated) {
       setShowLoginDialog(true);
       return;
     }
@@ -46,7 +45,6 @@ const ListingCard: React.FC<ListingCardProps> = ({
     const token = getToken();
     if (!token) {
       console.error("No token available");
-      // Optionally, you could set `showLoginDialog` here to prompt the user to log in.
       setShowLoginDialog(true);
       return;
     }
@@ -60,27 +58,11 @@ const ListingCard: React.FC<ListingCardProps> = ({
       setIsWishlisted(!isWishlisted);
     } catch (error) {
       console.error("Error updating wishlist:", error);
-      // TODO: Add error toast notification
     }
-
-    return (
-      <div onClick={handleWishlistClick}>{/* Listing content here */}</div>
-    );
   };
 
   const handleCardClick = () => {
-    // If in home context, show login dialog
-    if (context === "home") {
-      setShowLoginDialog(true);
-      return;
-    }
-
-    // If in recommended context (user is logged in), navigate to product info
-    if (context === "recommended") {
-      navigate(`/productInfo/${listing.id}`);
-    }
-
-    // Wishlist context behavior will be implemented later
+    navigate(`/productInfo/${listing.id}`);
   };
 
   const handleLoginClick = () => {
@@ -121,7 +103,8 @@ const ListingCard: React.FC<ListingCardProps> = ({
           position: "relative",
           cursor: "pointer",
           "&:hover": {
-            boxShadow: 6,
+            transform: 'scale(1.02)',
+            transition: 'transform 0.2s ease-in-out',
           },
         }}
         onClick={handleCardClick}
@@ -189,9 +172,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
         <DialogTitle>Sign in Required</DialogTitle>
         <DialogContent>
           <Typography>
-            {context === "home"
-              ? "Please sign in or create an account to view listing details."
-              : "Please sign in or create an account to add items to your wishlist."}
+            Please sign in or create an account to view listing details.
           </Typography>
         </DialogContent>
         <DialogActions

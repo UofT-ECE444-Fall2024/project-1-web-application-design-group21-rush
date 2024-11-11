@@ -14,7 +14,7 @@ import {
 // TODO: Replace direct service URLs with API Gateway once implemented
 
 // Base URL for the listings service
-const LISTINGS_SERVICE_URL = process.env.REACT_APP_LISTINGS_SERVICE_URL || 'http://localhost:5001';
+const LISTINGS_SERVICE_URL = 'http://localhost:5001';
 
 // Base URL for the search service
 const SEARCH_SERVICE_URL = process.env.REACT_APP_SEARCH_SERVICE_URL || 'http://localhost:5003';
@@ -37,12 +37,14 @@ export const listingsApi = {
   },
 
   createListing: async (listingData: FormData) => {
+    const token = localStorage.getItem('token'); // Get token from localStorage
     const response = await axios.post<Listing>(
       `${LISTINGS_SERVICE_URL}/api/listings/create-listing`,
       listingData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
         },
       }
     );
@@ -151,6 +153,28 @@ export const authApi = {
       return response.data;
     } catch (error) {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
+};
+
+export const userApi = {
+  // ... existing methods ...
+
+  getUserProfile: async (token: string) => {
+    try {
+      const response = await axios.get(
+        `${USER_SERVICE_URL}/api/users/user_id`,
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw error;
     }
   },
 };

@@ -11,7 +11,7 @@ const ProductInfo: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedListing, setEditedListing] = useState(listing);
+  const [editedListing, setEditedListing] = useState<Listing | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,8 +20,14 @@ const ProductInfo: React.FC = () => {
       
       try {
         setIsLoading(true);
-        const data = await listingsApi.getListingById(id);
-        setListing(data);
+        const response = await listingsApi.getListingById(id);
+        console.log('Fetched listing:', response); // Debug log
+        if (response) {
+          setListing(response);
+          setEditedListing(response);
+        } else {
+          setError('Listing not found');
+        }
       } catch (err) {
         console.error('Error fetching listing:', err);
         setError('Failed to fetch listing details');
@@ -33,14 +39,10 @@ const ProductInfo: React.FC = () => {
     fetchListing();
   }, [id]);
 
-  if (!listing) {
-    return <Navigate to="/" />;
-  }
-
   if (isLoading) {
     return (
       <>
-        <Header />
+        {/* <Header /> */}
         <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
           <CircularProgress />
         </Container>
@@ -48,16 +50,21 @@ const ProductInfo: React.FC = () => {
     );
   }
 
-  if (error || !listing) {
+  if (error) {
     return (
       <>
+        <Header />
         <Container sx={{ mt: 4 }}>
           <Alert severity="error">
-            {error || 'Listing not found'}
+            {error}
           </Alert>
         </Container>
       </>
     );
+  }
+
+  if (!listing) {
+    return <Navigate to="/" />;
   }
 
   const getImageUrl = () => {
@@ -83,18 +90,12 @@ const ProductInfo: React.FC = () => {
     }
   };
 
-  const handleDelete = () => {
-    navigate('/');
-  };
-
-  
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <Box sx={{ flexGrow: 1, padding: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={8} md={8}>
-            {/* Image Section */}
             <Box
               component="img"
               src={getImageUrl()}
@@ -110,12 +111,11 @@ const ProductInfo: React.FC = () => {
           </Grid>
 
           <Grid item xs={4} md={4}>
-            {/* Side Panel Section - Removed fixed height */}
             <Paper 
               elevation={3} 
               sx={{ 
                 padding: 2, 
-                minHeight: '70%', // Changed from height to minHeight
+                minHeight: '70%',
                 display: 'flex', 
                 flexDirection: 'column', 
                 alignItems: 'flex-start', 
@@ -124,37 +124,37 @@ const ProductInfo: React.FC = () => {
             >
               {!isEditing ? (
                 <>
-              <Typography variant="h4" gutterBottom>
-                <strong>{listing.title}</strong>
-              </Typography>
-
-              <Box sx={{ marginBottom: 2 }}>  {/* Increased margin */}
-                <Typography variant="h6">
-                  <strong>${listing.price.toFixed(2)} </strong>
-                </Typography>
-                </Box>
-
-                <Box sx={{ marginBottom: 1 }}>
-                  <Typography variant="h6">
-                    <strong>Seller:</strong> {listing.sellerName} 
+                  <Typography variant="h4" gutterBottom>
+                    <strong>{listing.title}</strong>
                   </Typography>
-                </Box>
 
-                <Box sx={{ marginBottom: 1 }}>
-                  <Typography variant="h6">
-                    <strong>Condition:</strong> {listing.condition} 
-                  </Typography>
-                </Box>
+                  <Box sx={{ marginBottom: 2 }}>
+                    <Typography variant="h6">
+                      <strong>${typeof listing.price === 'number' ? listing.price.toFixed(2) : listing.price}</strong>
+                    </Typography>
+                  </Box>
 
-                <Box sx={{ marginBottom: 1 }}>
-                  <Typography variant="h6">
-                    <strong>Description:</strong> {listing.description} 
-                  </Typography>
-                </Box>
+                  <Box sx={{ marginBottom: 1 }}>
+                    <Typography variant="h6">
+                      <strong>Seller:</strong> {listing.sellerName || 'Anonymous'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ marginBottom: 1 }}>
+                    <Typography variant="h6">
+                      <strong>Condition:</strong> {listing.condition}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ marginBottom: 1 }}>
+                    <Typography variant="h6">
+                      <strong>Description:</strong> {listing.description}
+                    </Typography>
+                  </Box>
                 </>
-              ):(
+              ) : (
                 <>
-                <TextField
+                  <TextField
                     fullWidth size="small"
                     label="Listing Title"
                     variant="outlined"
@@ -162,8 +162,8 @@ const ProductInfo: React.FC = () => {
                     onChange={handleEditRequest('title')}
                     InputLabelProps={{ style: { fontWeight: 'bold'} }}
                     sx={{ mb: 2 }}
-                />
-                <TextField
+                  />
+                  <TextField
                     fullWidth size="small"
                     label="Price"
                     variant="outlined"
@@ -173,37 +173,37 @@ const ProductInfo: React.FC = () => {
                     InputLabelProps={{ style: { fontWeight: 'bold'} }}
                     sx={{ mb: 2 }}
                     inputProps={{ min: 0 }}  
-                />
+                  />
 
-                <Box sx={{ marginBottom: 2 }}>
-                  <Typography variant="h6">
-                    <strong>Seller:</strong> {editedListing?.sellerName} 
-                  </Typography>
-                </Box>
+                  <Box sx={{ marginBottom: 2 }}>
+                    <Typography variant="h6">
+                      <strong>Seller:</strong> {editedListing?.sellerName} 
+                    </Typography>
+                  </Box>
 
-                <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                  <InputLabel id="condition-label">Condition</InputLabel>
-                  <Select
-                    labelId="condition-label"
-                    label="Condition"
-                    value={editedListing?.condition || ''}
-                    onChange={(event) => {
-                      if (editedListing) {
-                        setEditedListing({
-                          ...editedListing,
-                          condition: event.target.value
-                        });
-                      }
-                    }}
-                  >
-                    {CONDITIONS.map((condition) => (
-                      <MenuItem key={condition} value={condition}>
-                        {condition}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel id="condition-label">Condition</InputLabel>
+                    <Select
+                      labelId="condition-label"
+                      label="Condition"
+                      value={editedListing?.condition || ''}
+                      onChange={(event) => {
+                        if (editedListing) {
+                          setEditedListing({
+                            ...editedListing,
+                            condition: event.target.value
+                          });
+                        }
+                      }}
+                    >
+                      {CONDITIONS.map((condition) => (
+                        <MenuItem key={condition} value={condition}>
+                          {condition}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
                     fullWidth size="small"
                     label="Description"
                     variant="outlined"
@@ -211,50 +211,47 @@ const ProductInfo: React.FC = () => {
                     onChange={handleEditRequest('description')}
                     InputLabelProps={{ style: { fontWeight: 'bold'} }}
                     sx={{ mb: 2 }}
-                />
+                  />
                 </>
               )}
               <Box sx={{ marginTop: 'auto', width: '100%', display: 'flex', gap: 2}}>
                 {isEditing ? (
+                  <Button 
+                    variant="contained" 
+                    color="success" 
+                    fullWidth
+                    onClick={() => { 
+                      if (editedListing) {
+                        setListing(editedListing);
+                        setIsEditing(false);
+                      }
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                ) : ( 
                   <>
                     <Button 
                       variant="contained" 
-                      color="success" 
+                      color="primary" 
                       fullWidth
-                      onClick={() => { 
-                      if (editedListing && listing) {
-                        // Update the listing with all the edited values
-                        // mockListings[listingIndex] = editedListing;
-                        setIsEditing(false);
-                      }
+                      onClick={() => setIsEditing(true)}
+                    >
+                      Edit Listing
+                    </Button>
+
+                    <Button 
+                      variant="contained" 
+                      color="error" 
+                      fullWidth
+                      onClick={() => {
+                        // TODO: Implement delete functionality
+                        console.log('Delete functionality to be implemented');
                       }}
                     >
-                      Save Changes
+                      Delete Listing
                     </Button>
                   </>
-                ):( 
-                  <>
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    fullWidth
-                    onClick={() => { setIsEditing(true)
-                    }}
-                  >
-                    Edit Listing
-                  </Button>
-
-                  <Button 
-                    variant="contained" 
-                    color="error" 
-                    fullWidth
-                    onClick={() => {
-                      handleDelete()
-                    }}
-                  >
-                    Delete Listing
-                  </Button>
-                </>
                 )}
               </Box>
             </Paper>

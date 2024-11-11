@@ -34,7 +34,7 @@ const Header: React.FC = () => {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {isAuthenticated ? (
+        {!isAuthenticated ? (
           <>
             <Button 
               onClick={() => handleNavigation('/signup')}
@@ -52,6 +52,13 @@ const Header: React.FC = () => {
           </>
         ) : (
           <>
+            <Button 
+              onClick={() => handleNavigation('/recommended')}
+              sx={buttonStyle}
+            >
+              Recommended
+            </Button>
+
             <Button 
               onClick={() => handleNavigation('/wishlist')}
               sx={buttonStyle}

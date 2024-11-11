@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Container, 
   Paper, 
@@ -18,8 +18,10 @@ import {
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { listingsApi } from '../services/api';
+import { listingsApi, userApi } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const CreateListing: React.FC = () => {
   const [listing, setListing] = useState({
@@ -36,6 +38,36 @@ const CreateListing: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const { isAuthenticated, getToken } = useAuth();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!isAuthenticated) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const token = getToken();
+        if (!token) {
+          setError('Authentication token not found');
+          return;
+        }
+
+        const response = await userApi.getUserProfile(token);
+        console.log('User profile response:', response);
+        setUserId(response.user_id);
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
+        setError('Failed to fetch user information');
+      }
+    };
+
+    fetchUserProfile();
+  }, [isAuthenticated, navigate, getToken]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setListing({
@@ -93,11 +125,17 @@ const CreateListing: React.FC = () => {
     setIsSubmitting(true);
     setError(null);
 
+    if (!userId) {
+      setError('User information not available');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const formData = new FormData();
       
       // Add basic listing data
-      formData.append('id', crypto.randomUUID()); // Generate a unique ID
+      formData.append('id', crypto.randomUUID());
       formData.append('title', listing.title);
       formData.append('description', listing.description);
       formData.append('price', listing.price);
@@ -106,18 +144,21 @@ const CreateListing: React.FC = () => {
       formData.append('category', listing.category);
       formData.append('datePosted', new Date().toISOString());
       
-      // TODO: Get these from auth context once implemented
-      formData.append('sellerId', 'temp-user-id');
-      formData.append('sellerName', 'Temporary User');
-
+      // Add user information
+      formData.append('sellerId', userId);
+      formData.append('sellerName', "username");
+      
       // Add all images
       listing.images.forEach((file) => {
         formData.append('file', file);
       });
 
+      const token = getToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
       await listingsApi.createListing(formData);
-      
-      // Redirect to home page after successful creation
       navigate('/');
     } catch (err) {
       console.error('Error creating listing:', err);
