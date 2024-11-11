@@ -477,6 +477,17 @@ def register_routes(app):
             200,
         )
 
+    @app.route("/api/users/edit_user", methods=["POST"])
+    @jwt_required()
+    def edit_user():
+        user_id = get_jwt_identity()
+        data = request.get_json(silent=True)
+
+        if update_user(user_id, data):
+            return jsonify({"message": "Updated user successfully"}), 200
+        else:
+            return jsonify({"error": "Failed to update user"}), 500
+
 
 if __name__ == "__main__":
     app = create_app()
