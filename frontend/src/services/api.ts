@@ -86,7 +86,7 @@ export const authApi = {
 
   verifyEmail: async (token: string): Promise<VerificationResponse | ErrorResponse> => {
     try {
-      const response = await axios.get<VerificationResponse>(`${USER_SERVICE_URL}/api/users/pre_register/verify_email/${token}`);
+      const response = await axios.get<VerificationResponse>(`${USER_SERVICE_URL}/api/users/verify_email/${token}`);
       return response.data;
     } catch (error) {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
@@ -95,7 +95,7 @@ export const authApi = {
 
   resendVerification: async (email: string): Promise<VerificationResponse | ErrorResponse> => {
     try {
-      const response = await axios.post<VerificationResponse>(`${USER_SERVICE_URL}/api/users/pre_register/resend_verification`, { email });
+      const response = await axios.post<VerificationResponse>(`${USER_SERVICE_URL}/api/users/resend_verification`, { email });
       return response.data;
     } catch (error) {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
@@ -104,7 +104,7 @@ export const authApi = {
 
   loginUser: async (request: LoginRequest): Promise<LoginResponse | ErrorResponse> => {
     try {
-      const response = await axios.post<LoginResponse>(`${USER_SERVICE_URL}/api/users/pre_register/login`, request);
+      const response = await axios.post<LoginResponse>(`${USER_SERVICE_URL}/api/users/login`, request);
       localStorage.setItem('access_token', response.data.access_token); // Store token
       return response.data;
     } catch (error) {
@@ -127,6 +127,27 @@ export const authApi = {
         }
       );
       localStorage.removeItem('access_token'); // Clear token on logout
+      return response.data;
+    } catch (error) {
+      return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
+  isUsernameExisting: async (username: string): Promise<{ exists: boolean } | ErrorResponse> => {
+    try {
+      const response = await axios.get<{ exists: boolean }>(`${USER_SERVICE_URL}/api/users/is_username_existing`, {
+        params: { username },
+      });
+      return response.data;
+    } catch (error) {
+      return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
+
+  isEmailExisting: async (email: string): Promise<{ exists: boolean } | ErrorResponse> => {
+    try {
+      const response = await axios.get<{ exists: boolean }>(`${USER_SERVICE_URL}/api/users/is_email_existing`, {
+        params: { email },
+      });
       return response.data;
     } catch (error) {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
