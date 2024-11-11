@@ -562,6 +562,29 @@ def register_routes(app):
             200,
         )
 
+    @app.route("/api/users/wishlist/check", methods=["POST"])
+    @jwt_required()
+    def check_wishlist():
+        user_id = get_jwt_identity()
+        data = request.get_json(silent=True)
+
+        if not data or "listingId" not in data:
+            return jsonify({"error": "Listing ID is required"}), 400
+
+        listing_id = data["listingId"]
+
+        # Fetch user data
+        user = get_user_by_id(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Check if the listing ID is in the user's wishlist
+        wishlist = user.get("wishlist", [])
+        is_in_wishlist = listing_id in wishlist
+
+        return jsonify({"is_in_wishlist": is_in_wishlist}), 200
+
+
     @app.route("/api/users/change_password", methods=["POST"])
     @jwt_required()
     def change_password():
