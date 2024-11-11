@@ -514,6 +514,25 @@ def register_routes(app):
         user_id = get_jwt_identity()
         return jsonify({"user_id": user_id}), 200
 
+    @app.route("/api/users/user_info", methods=["GET"])
+    @jwt_required()
+    def get_user_info():
+        user_id = get_jwt_identity()
+        
+        try:
+            user_info = get_user_by_id(user_id)
+            
+            if not user_info:
+                return jsonify({"error": "User not found"}), 404
+            
+            if len(user_info) == 1:
+                return jsonify(user_info[0]), 200
+            else:
+                return jsonify({"error": "Duplicate user id in database"}), 500
+                
+        except Exception as e:
+            return jsonify({"error": "Could not access user database", "details": str(e)}), 500
+
     @app.route("/api/users/wishlist", methods=["POST"])
     @jwt_required()
     def add_to_wishlist():
