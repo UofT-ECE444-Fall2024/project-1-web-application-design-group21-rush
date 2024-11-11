@@ -33,6 +33,7 @@ class TestFlaskApp(unittest.TestCase):
                 "Content-Type": "application/json",
             }
 
+
     @patch("app.send_verification_email")
     @patch("app.scan_users_by_attribute")
     def test_pre_register_success(self, mock_scan_users, mock_send_verification_email):
@@ -480,6 +481,80 @@ class TestFlaskApp(unittest.TestCase):
         response_json = response.get_json()
         self.assertIn("msg", response_json)
         self.assertIn("Missing Authorization Header", response_json["msg"])
+    
+    # Add new test cases here for the check_wishlist endpoint
+    @patch("app.get_user_by_id")
+    def test_check_wishlist_listing_present(self, mock_get_user_by_id):
+        # Mock get_user_by_id to return a user with a wishlist containing the listing
+        mock_get_user_by_id.return_value = {
+            "id": "testuser",
+            "wishlist": ["listing_1", "listing_2"]
+        }
+
+        # Send POST request to check if "listing_1" is in the wishlist
+        response = self.client.post(
+            "/api/users/wishlist/check",
+            headers=self.headers,
+            data=json.dumps({"listingId": "listing_1"})
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.get_json()["is_in_wishlist"])
+
+    @patch("app.get_user_by_id")
+    def test_check_wishlist_listing_not_present(self, mock_get_user_by_id):
+        # Mock get_user_by_id to return a user with a wishlist that does not contain the listing
+        mock_get_user_by_id.return_value = {
+            "id": "testuser",
+            "wishlist": ["listing_2", "listing_3"]
+        }
+
+        # Send POST request to check if "listing_1" is in the wishlist
+        response = self.client.post(
+            "/api/users/wishlist/check",
+            headers=self.headers,
+            data=json.dumps({"listingId": "listing_1"})
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.get_json()["is_in_wishlist"])
+
+    @patch("app.get_user_by_id")
+    def test_check_wishlist_missing_listing_id(self, mock_get_user_by_id):
+        # Mock get_user_by_id to return a user
+        mock_get_user_by_id.return_value = {
+            "id": "testuser",
+            "wishlist": ["listing_2", "listing_3"]
+        }
+
+        # Send POST request without listingId
+        response = self.client.post(
+            "/api/users/wishlist/check",
+            headers=self.headers,
+            data=json.dumps({})
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Listing ID is required", response.get_json()["error"])
+
+    @patch("app.get_user_by_id")
+    def test_check_wishlist_user_not_found(self, mock_get_user_by_id):
+        # Mock get_user_by_id to return None, simulating a user not found
+        mock_get_user_by_id.return_value = None
+
+        # Send POST request to check if "listing_1" is in the wishlist
+        response = self.client.post(
+            "/api/users/wishlist/check",
+            headers=self.headers,
+            data=json.dumps({"listingId": "listing_1"})
+        )
+
+        # Check the response
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("User not found", response.get_json()["error"])
 
     @patch("app.get_user_by_id")
     def test_get_user_info_success(self, mock_get_user_by_id):
