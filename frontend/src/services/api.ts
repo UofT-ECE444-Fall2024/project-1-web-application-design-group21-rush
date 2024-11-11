@@ -115,6 +115,32 @@ export const listingsApi = {
     const response = await axios.get<{ listing: Listing }>(`${LISTINGS_SERVICE_URL}/api/listings/${id}`);
     return response.data.listing;
   },
+
+  editListing: async (id: string, listingData: FormData) => {
+    const response = await axios.put<Listing>(
+      `${LISTINGS_SERVICE_URL}/api/listings/edit/${id}`,
+      listingData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
+
+  // deleteListing: async (id: string) => {
+  //   const response = await axios.delete(`${LISTINGS_SERVICE_URL}/api/listings/delete/${id}`);
+  //   return response.data;
+  // },
+  deleteListing: async (id: string) => {
+    try {
+      const response = await axios.delete(`${LISTINGS_SERVICE_URL}/api/listings/delete/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      throw new Error(axios.isAxiosError(error) ? error.response?.data?.message || 'Failed to delete listing' : 'Failed to delete listing');
+    }
+  },
 };
 export const authApi = {
   preRegisterUser: async (request: RegisterRequest): Promise<RegisterResponse | ErrorResponse> => {
@@ -191,6 +217,22 @@ export const authApi = {
         params: { email },
       });
       return response.data;
+    } catch (error) {
+      return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
+
+  getUserId: async (): Promise<string | { error: string }> => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return { error: 'No token found' };
+
+    try { 
+      const response = await axios.get(`${USER_SERVICE_URL}/api/users/user_id`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return response.data.user_id;
     } catch (error) {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
     }

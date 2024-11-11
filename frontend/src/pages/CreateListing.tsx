@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { listingsApi, userApi } from '../services/api';
+import { listingsApi, authApi, userApi } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -142,12 +142,21 @@ const CreateListing: React.FC = () => {
       formData.append('location', listing.location);
       formData.append('condition', listing.condition);
       formData.append('category', listing.category);
-      formData.append('datePosted', new Date().toISOString());
+      formData.append('datePosted', new Date().toISOString())
       
-      // Add user information
-      formData.append('sellerId', userId);
-      formData.append('sellerName', "username");
-      
+
+      // TODO: Get these from auth context once implemented
+      try {
+        const userId = await authApi.getUserId();
+        if (typeof userId === 'string') {
+          formData.append('sellerId', userId);
+        }
+      } catch (error) {
+        console.error('Error fetching user ID:', error);
+      }
+
+      formData.append('sellerName', 'Temporary User');
+
       // Add all images
       listing.images.forEach((file) => {
         formData.append('file', file);
