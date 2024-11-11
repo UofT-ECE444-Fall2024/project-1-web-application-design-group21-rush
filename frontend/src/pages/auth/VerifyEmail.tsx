@@ -18,7 +18,7 @@ const VerifyEmail: React.FC = () => {
   const [countdown, setCountdown] = useState<number>(10);
 
   // Redirect if email is missing
-  useEffect(() => {
+  useEffect(() => { //this shouldnt be possible
     if (!email) {
       setError('Email not provided. Redirecting...');
       setTimeout(() => navigate('/signup'), 3000); // Redirect after 3 seconds
@@ -45,7 +45,7 @@ const VerifyEmail: React.FC = () => {
     setMessage('A new verification link has been sent to your email.');
     setResendDisabled(true);
     setCountdown(60);
-    
+
     try {
       const response = await authApi.resendVerification(email);
       console.log(response);

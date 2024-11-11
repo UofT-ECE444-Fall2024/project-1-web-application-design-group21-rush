@@ -1,6 +1,4 @@
-// src/services/types.ts
-
-// Export each type so it can be used in other files
+//all the structures for the api calling functions
 export interface RegisterRequest {
     username: string;
     email: string;

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  Container, 
-  Paper, 
-  Typography, 
-  TextField, 
-  Button, 
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
   Grid,
-  Alert 
+  Alert
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Navigate } from 'react-router-dom';
@@ -28,7 +28,6 @@ const Login: React.FC = () => {
     return <Navigate to="/" replace />;
   }
 
-  // Handle form submission
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!emailRegex.test(email)) {
@@ -42,10 +41,10 @@ const Login: React.FC = () => {
       const response = await authApi.loginUser({ email, password });
 
       if ('access_token' in response) {
-        login(response.access_token); // Update auth state with the token
-        localStorage.setItem('access_token', response.access_token); // Store token in localStorage
-        setAlertMsg('Login successful!'); // Display success message
-        setTimeout(() => navigate('/'), 1500); // Redirect to root after a short delay
+        login(response.access_token);
+        localStorage.setItem('access_token', response.access_token);
+        setAlertMsg('Login successful!');
+        setTimeout(() => navigate('/'), 1500);
       } else {
         setAlertMsg(response.error || 'Invalid email or password.');
       }

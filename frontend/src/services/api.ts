@@ -29,13 +29,13 @@ export const listingsApi = {
     const response = await axios.get<{ listings: Listing[] }>(`${LISTINGS_SERVICE_URL}/api/listings/all`);
     return response.data.listings; // Returns an array of Listing objects
   },
-  
+
   // Function to search listings based on a query string
   searchListings: async (query: string) => {
     const response = await axios.get<Listing[]>(`${SEARCH_SERVICE_URL}/search?q=${query}`);
     return response.data; // Returns an array of Listing objects matching the search query
   },
-  
+
   createListing: async (listingData: FormData) => {
     const response = await axios.post<Listing>(
       `${LISTINGS_SERVICE_URL}/api/listings/create-listing`,
@@ -56,12 +56,12 @@ export const listingsApi = {
 
   addToWishlist: async (listingId: string, token: string) => {
     const response = await axios.post(
-        `${USER_SERVICE_URL}/wishlist`, 
-        { listingId },
-        { headers: { Authorization: `Bearer ${token}` } }
+      `${USER_SERVICE_URL}/wishlist`,
+      { listingId },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
-},
+  },
 
 
   removeFromWishlist: async (listingId: string) => {
