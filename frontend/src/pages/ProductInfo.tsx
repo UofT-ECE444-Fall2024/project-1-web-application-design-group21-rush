@@ -40,7 +40,6 @@ const ProductInfo: React.FC = () => {
   if (isLoading) {
     return (
       <>
-        <Header />
         <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
           <CircularProgress />
         </Container>
@@ -90,7 +89,6 @@ const ProductInfo: React.FC = () => {
   
   return (
     <>
-      <Header />
       <Box sx={{ flexGrow: 1, padding: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={8} md={8}>
