@@ -457,11 +457,9 @@ def register_routes(app):
             if not user_info:
                 return jsonify({"error": "User not found"}), 404
             
-            if len(user_info) == 1:
-                return jsonify(user_info[0]), 200
             else:
-                return jsonify({"error": "Duplicate user id in database"}), 500
-                
+                return jsonify(user_info), 200
+                            
         except Exception as e:
             return jsonify({"error": "Could not access user database", "details": str(e)}), 500
 
