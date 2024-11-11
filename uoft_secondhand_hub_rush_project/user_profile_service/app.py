@@ -87,6 +87,74 @@ def send_verification_email(email, username, serializer):
         return None
 
 
+def send_password_reset_email(email, username, serializer):
+    """
+    Sends a password reset email to the specified email address.
+    """
+    # Generate a password reset token
+    token = serializer.dumps(email, salt="password-reset-salt")
+
+    # Build the password reset URL
+    reset_url = url_for("reset_password", token=token, _external=True)
+
+    # Email content
+    subject = "Password Reset Request"
+    sender_email = current_app.config["SENDER_EMAIL"]
+    smtp_server = current_app.config["SMTP_SERVER"]
+    smtp_port = current_app.config["SMTP_PORT"]
+    smtp_username = current_app.config["SMTP_USERNAME"]
+    smtp_password = current_app.config["SMTP_PASSWORD"]
+
+    receiver_email = email
+
+    # Craft the email message
+    message = MIMEMultipart("alternative")
+    message["Subject"] = subject
+    message["From"] = sender_email
+    message["To"] = receiver_email
+
+    text_content = f"""Hello {username},
+
+We received a request to reset your password. Please click the link below to reset your password:
+
+{reset_url}
+
+If you did not request a password reset, please ignore this email.
+
+Thank you!
+"""
+    html_content = f"""
+    <html>
+      <body>
+        <p>Hello {username},<br><br>
+           We received a request to reset your password. Please click the link below to reset your password:<br>
+           <a href="{reset_url}">Reset Password</a><br><br>
+           If you did not request a password reset, please ignore this email.<br><br>
+           Thank you!
+        </p>
+      </body>
+    </html>
+    """
+
+    # Attach both plain text and HTML versions
+    part1 = MIMEText(text_content, "plain")
+    part2 = MIMEText(html_content, "html")
+    message.attach(part1)
+    message.attach(part2)
+
+    # Send the email via SMTP
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()  # Upgrade the connection to secure
+            server.login(smtp_username, smtp_password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+        current_app.logger.info(f"Password reset email sent to {receiver_email}")
+        return token
+    except Exception as e:
+        current_app.logger.error(f"Failed to send password reset email: {e}")
+        return None
+
+
 def create_app(config_filename=None):
     """
     Factory function to create and configure the Flask application.
@@ -446,6 +514,23 @@ def register_routes(app):
         user_id = get_jwt_identity()
         return jsonify({"user_id": user_id}), 200
 
+    @app.route("/api/users/user_info", methods=["GET"])
+    @jwt_required()
+    def get_user_info():
+        user_id = get_jwt_identity()
+        
+        try:
+            user_info = get_user_by_id(user_id)
+            
+            if not user_info:
+                return jsonify({"error": "User not found"}), 404
+            
+            else:
+                return jsonify(user_info), 200
+                            
+        except Exception as e:
+            return jsonify({"error": "Could not access user database", "details": str(e)}), 500
+
     @app.route("/api/users/wishlist", methods=["POST"])
     @jwt_required()
     def add_to_wishlist():
@@ -530,6 +615,176 @@ def register_routes(app):
         except Exception as e:
             current_app.logger.exception(f"An error occurred while updating user {user_id}: {e}")
             return jsonify({"error": "An unexpected error occurred"}), 500
+
+    @app.route("/api/users/wishlist/check", methods=["POST"])
+    @jwt_required()
+    def check_wishlist():
+        user_id = get_jwt_identity()
+        data = request.get_json(silent=True)
+
+        if not data or "listingId" not in data:
+            return jsonify({"error": "Listing ID is required"}), 400
+
+        listing_id = data["listingId"]
+
+        # Fetch user data
+        user = get_user_by_id(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Check if the listing ID is in the user's wishlist
+        wishlist = user.get("wishlist", [])
+        is_in_wishlist = listing_id in wishlist
+
+        return jsonify({"is_in_wishlist": is_in_wishlist}), 200
+
+
+    @app.route("/api/users/change_password", methods=["POST"])
+    @jwt_required()
+    def change_password():
+        """
+        Allows an authenticated user to change their password.
+        Required fields:
+        - old_password
+        - new_password
+        """
+        app.logger.info("Received change password request")
+        data = request.get_json()
+        if data is None:
+            app.logger.warning("No JSON payload received for change password")
+            return jsonify({"error": "Invalid input"}), 400
+
+        old_password = data.get("old_password")
+        new_password = data.get("new_password")
+
+        if not old_password or not new_password:
+            app.logger.warning("Missing old_password or new_password in request")
+            return jsonify({"error": "Old password and new password are required"}), 400
+
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+
+        if not user:
+            app.logger.warning(f"User not found with ID: {user_id}")
+            return jsonify({"error": "User not found"}), 404
+
+        if not check_password_hash(user["password"], old_password):
+            app.logger.warning(f"Incorrect old password for user ID: {user_id}")
+            return jsonify({"error": "Incorrect old password"}), 401
+
+        if old_password == new_password:
+            app.logger.warning("Old password and new password are the same")
+            return jsonify({"error": "New password must be different"}), 400
+
+        # Update the password
+        hashed_new_password = generate_password_hash(new_password)
+        success = update_user(user_id, {"password": hashed_new_password})
+
+        if not success:
+            app.logger.error(f"Failed to update password for user ID: {user_id}")
+            return jsonify({"error": "Failed to update password"}), 500
+
+        app.logger.info(f"Password changed successfully for user ID: {user_id}")
+        return jsonify({"message": "Password changed successfully"}), 200
+
+
+    @app.route("/api/users/forgot_password", methods=["POST"])
+    def forgot_password():
+        """
+        Initiates the password reset process by sending a reset email to the user.
+        Required fields:
+        - email
+        """
+        app.logger.info("Received forgot password request")
+        data = request.get_json()
+        if data is None:
+            app.logger.warning("No JSON payload received for forgot password")
+            return jsonify({"error": "Invalid input"}), 400
+
+        email = data.get("email")
+        if not email:
+            app.logger.warning("Email not provided in forgot password request")
+            return jsonify({"error": "Email is required"}), 400
+
+        # Check if the user exists
+        users = scan_users_by_attribute("email", email)
+        if not users:
+            app.logger.warning(f"Forgot password requested for non-existent email: {email}")
+            # To prevent email enumeration, respond with a generic message
+            return jsonify({"message": "If the email exists, a reset link has been sent."}), 200
+
+        assert(len(users) == 1)
+        user = users[0]
+        username = user["username"]
+
+        # Generate and send a password reset email
+        token = send_password_reset_email(email, username, app.serializer)
+
+        if token:
+            app.logger.info(f"Password reset email sent to {email}")
+            return jsonify({"message": "If the email exists, a reset link has been sent."}), 200
+        else:
+            app.logger.error(f"Failed to send password reset email to {email}")
+            return jsonify({"message": "Failed to send password reset email. Please try again later."}), 500
+
+
+    @app.route("/api/users/reset_password/<token>", methods=["POST"])
+    def reset_password(token):
+        """
+        Resets the user's password using the provided token.
+        Required fields:
+        - new_password
+        """
+
+        app.logger.info("Received reset password request")
+        data = request.get_json()
+        if data is None:
+            app.logger.warning("No JSON payload received for reset password")
+            return jsonify({"error": "Invalid input"}), 400
+
+        new_password = data.get("new_password")
+        if not new_password:
+            app.logger.warning("New password not provided in reset password request")
+            return jsonify({"error": "New password is required"}), 400
+
+        try:
+            # Decode the token to get the email
+            email = app.serializer.loads(
+                token, salt="password-reset-salt", max_age=3600
+            )  # 1 hour validity
+            app.logger.info(f"Token decoded successfully for {email}")
+
+            # Fetch user data
+            users = scan_users_by_attribute("email", email)
+            if not users:
+                app.logger.warning(f"No user found for email: {email}")
+                return jsonify({"error": "Invalid token or user does not exist"}), 400
+
+            assert(len(users) == 1)
+            user = users[0]
+            user_id = user["id"]
+
+            # Update the user's password
+            hashed_new_password = generate_password_hash(new_password)
+            success = update_user(user_id, {"password": hashed_new_password})
+
+            if not success:
+                app.logger.error(f"Failed to update password for user ID: {user_id}")
+                return jsonify({"error": "Failed to update password"}), 500
+
+            app.logger.info(f"Password reset successfully for user ID: {user_id}")
+            return jsonify({"message": "Password has been reset successfully"}), 200
+
+        except SignatureExpired:
+            app.logger.warning("Password reset link has expired")
+            return jsonify({"error": "Reset link has expired"}), 400
+        except BadSignature:
+            app.logger.warning("Invalid password reset token")
+            return jsonify({"error": "Invalid reset link"}), 400
+        except Exception as e:
+            app.logger.error(f"An unexpected error occurred during password reset: {e}")
+            return jsonify({"error": "An unexpected error occurred"}), 500
+
 
 if __name__ == "__main__":
     app = create_app()

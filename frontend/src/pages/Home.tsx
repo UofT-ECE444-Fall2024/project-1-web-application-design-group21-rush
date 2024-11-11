@@ -19,7 +19,6 @@ import SearchBar from '../components/search/SearchBar';
 import ListingCard from '../components/listings/ListingCard';
 import { Listing } from '../types/listing';
 import { CATEGORIES } from '../mock/listings';
-import Header from '../components/layout/Header';
 import { listingsApi } from '../services/api';
 import { LISTINGS_PER_PAGE } from '../constants/pagination';
 

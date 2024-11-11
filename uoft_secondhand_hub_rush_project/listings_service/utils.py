@@ -110,15 +110,27 @@ def update_listing_in_table(listing_id, update_data):
     
     table = dynamodb.Table(current_app.config['AWS_DB_LISTINGS_TABLE_NAME'])
     
-    # prep the update expression and attribute values
-    update_expression = "SET " + ", ".join([f"{k} = :{k}" for k in update_data.keys()])
-    expression_attribute_values = {f":{k}": v for k, v in update_data.items()}
+    # Build expressions with proper handling of reserved keywords
+    update_parts = []
+    expr_names = {}
+    expr_values = {}
+    
+    for key, value in update_data.items():
+        # Use expression attribute names for all fields
+        attr_name = f"#{key}"
+        attr_value = f":{key}"
+        update_parts.append(f"{attr_name} = {attr_value}")
+        expr_names[attr_name] = key
+        expr_values[attr_value] = value
+
+    update_expression = "SET " + ", ".join(update_parts)
 
     try:
-        table.update_item(
+        response = table.update_item(
             Key={'id': listing_id},
             UpdateExpression=update_expression,
-            ExpressionAttributeValues=expression_attribute_values
+            ExpressionAttributeNames=expr_names,
+            ExpressionAttributeValues=expr_values
         )
         current_app.logger.info(f"Listing with id {listing_id} updated successfully.")
         return True
