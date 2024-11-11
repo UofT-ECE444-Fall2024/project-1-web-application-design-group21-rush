@@ -481,6 +481,32 @@ class TestFlaskApp(unittest.TestCase):
         self.assertIn("msg", response_json)
         self.assertIn("Missing Authorization Header", response_json["msg"])
 
+    @patch("app.get_user_by_id")
+    def test_get_user_info_success(self, mock_get_user_by_id):
+        # Mock the user retrieval to return user information
+        mock_get_user_by_id.return_value = {"id": "testuser", "username": "testuser", "email": "test@example.com"}
+
+        # Make the GET request to retrieve user info
+        response = self.client.get("/api/users/user_info", headers=self.headers)
+
+        # Verify the response status code and content
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json.get("id"), "testuser")
+        self.assertEqual(response.json.get("email"), "test@example.com")
+
+    @patch("app.get_user_by_id")
+    def test_get_user_info_user_not_found(self, mock_get_user_by_id):
+        # Mock the user retrieval to return None (user not found)
+        mock_get_user_by_id.return_value = None
+
+        # Make the GET request to retrieve user info
+        response = self.client.get("/api/users/user_info", headers=self.headers)
+
+        # Verify the response status code and error message
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("User not found", response.json.get("error", ""))
+
+        
 
     # Unit tests for change_password feature
     @patch("app.update_user")
