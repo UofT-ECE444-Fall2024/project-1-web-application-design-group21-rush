@@ -477,16 +477,34 @@ def register_routes(app):
             200,
         )
 
-    @app.route("/api/users/edit_user", methods=["POST"])
-    @jwt_required()
-    def edit_user():
-        user_id = get_jwt_identity()
-        data = request.get_json(silent=True)
+@app.route("/api/users/edit_user", methods=["POST"])
+@jwt_required()
+def edit_user():
+    user_id = get_jwt_identity()
+    data = request.get_json(silent=True)
 
-        if update_user(user_id, data):
-            return jsonify({"message": "Updated user successfully"}), 200
-        else:
-            return jsonify({"error": "Failed to update user"}), 500
+    if not data:
+        return jsonify({"error": "No input data provided"}), 400
+
+    # Define fields that are allowed to be updated
+    allowed_fields = {"username", "wishlist", "categories", "location"}
+
+    # Identify any disallowed fields in the input
+    disallowed_fields = set(data.keys()) - allowed_fields
+
+    if disallowed_fields:
+        current_app.logger.warning(
+            f"User {user_id} attempted to modify restricted fields: {disallowed_fields}"
+        )
+        return jsonify({
+            "error": f"Modification of fields {', '.join(disallowed_fields)} is not allowed."
+        }), 400
+
+    # Proceed to update with only allowed fields
+    if update_user(user_id, data):
+        return jsonify({"message": "Updated user successfully"}), 200
+    else:
+        return jsonify({"error": "Failed to update user"}), 500
 
 
 if __name__ == "__main__":
