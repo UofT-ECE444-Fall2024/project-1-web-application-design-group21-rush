@@ -61,21 +61,16 @@ const ProductInfo: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error || !listing) {
     return (
       <>
-        <Header />
         <Container sx={{ mt: 4 }}>
           <Alert severity="error">
-            {error}
+            {error || 'Listing not found'}
           </Alert>
         </Container>
       </>
     );
-  }
-
-  if (!listing) {
-    return <Navigate to="/" />;
   }
 
   const getImageUrl = () => {
@@ -136,7 +131,6 @@ const ProductInfo: React.FC = () => {
     }
   };
 
-
   const handleSave = () => {
     if (editedListing && listing) {
       const formData = new FormData();
@@ -175,6 +169,7 @@ const ProductInfo: React.FC = () => {
       <Box sx={{ flexGrow: 1, padding: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={8} md={8}>
+            {/* Image Section */}
             <Box
               component="img"
               src={getImageUrl()}
@@ -190,11 +185,12 @@ const ProductInfo: React.FC = () => {
           </Grid>
 
           <Grid item xs={4} md={4}>
+            {/* Side Panel Section - Removed fixed height */}
             <Paper 
               elevation={3} 
               sx={{ 
                 padding: 2, 
-                minHeight: '70%',
+                minHeight: '70%', // Changed from height to minHeight
                 display: 'flex', 
                 flexDirection: 'column', 
                 alignItems: 'flex-start', 
@@ -203,16 +199,15 @@ const ProductInfo: React.FC = () => {
             >
               {!isEditing ? (
                 <>
-                  <Typography variant="h4" gutterBottom>
-                    <strong>{listing.title}</strong>
-                  </Typography>
+              <Typography variant="h4" gutterBottom>
+                <strong>{listing.title}</strong>
+              </Typography>
 
-                  <Box sx={{ marginBottom: 2 }}>
-                    <Typography variant="h6">
-                      <strong>${typeof listing.price === 'number' ? listing.price.toFixed(2) : listing.price}</strong>
-                    </Typography>
-                  </Box>
-
+              <Box sx={{ marginBottom: 2 }}>  {/* Increased margin */}
+                <Typography variant="h6">
+                  <strong>${listing.price.toFixed(2)} </strong>
+                </Typography>
+                </Box>
 
                 <Box sx={{ marginBottom: 1 }}>
                   <Typography variant="h6">
@@ -226,11 +221,11 @@ const ProductInfo: React.FC = () => {
                   </Typography>
                 </Box>
 
-                  <Box sx={{ marginBottom: 1 }}>
-                    <Typography variant="h6">
-                      <strong>Condition:</strong> {listing.condition}
-                    </Typography>
-                  </Box>
+                <Box sx={{ marginBottom: 1 }}>
+                  <Typography variant="h6">
+                    <strong>Condition:</strong> {listing.condition} 
+                  </Typography>
+                </Box>
 
                 <Box sx={{ marginBottom: 1 }}>
                   <Typography variant="h6">
@@ -244,9 +239,9 @@ const ProductInfo: React.FC = () => {
                   </Typography>
                 </Box>
                 </>
-              ) : (
+              ):(
                 <>
-                  <TextField
+                <TextField
                     fullWidth size="small"
                     label="Listing Title"
                     variant="outlined"
@@ -254,8 +249,8 @@ const ProductInfo: React.FC = () => {
                     onChange={handleEditRequest('title')}
                     InputLabelProps={{ style: { fontWeight: 'bold'} }}
                     sx={{ mb: 2 }}
-                  />
-                  <TextField
+                />
+                <TextField
                     fullWidth size="small"
                     label="Price"
                     variant="outlined"
@@ -265,8 +260,7 @@ const ProductInfo: React.FC = () => {
                     InputLabelProps={{ style: { fontWeight: 'bold'} }}
                     sx={{ mb: 2 }}
                     inputProps={{ min: 0 }}  
-                  />
-
+                />
 
                 <FormControl fullWidth size="small" sx={{ mb: 2 }}>
                   <InputLabel id="location-label">Location</InputLabel>
@@ -345,7 +339,6 @@ const ProductInfo: React.FC = () => {
                     onChange={handleEditRequest('description')}
                     InputLabelProps={{ style: { fontWeight: 'bold'} }}
                     sx={{ mb: 2 }}
-
                 />
                 <Box sx={{ width: '100%', mb: 2 }}>
                   <Button
@@ -382,29 +375,14 @@ const ProductInfo: React.FC = () => {
               <>
               <Box sx={{ marginTop: 'auto', width: '100%', display: 'flex', gap: 2}}>
                 {isEditing ? (
-                  <Button 
-                    variant="contained" 
-                    color="success" 
-                    fullWidth
-                    onClick={() => { 
-                      if (editedListing) {
-                        setListing(editedListing);
-                        setIsEditing(false);
-                      }
-                    }}
-                  >
-                    Save Changes
-                  </Button>
-                ) : ( 
                   <>
                     <Button 
                       variant="contained" 
-                      color="primary" 
+                      color="success" 
                       fullWidth
-
                       onClick={() => { handleSave() }}
                     >
-                      Delete Listing
+                      Save Changes
                     </Button>
                   </>
                 ):( 
