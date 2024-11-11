@@ -21,6 +21,7 @@ import VerifyEmail from './pages/auth/VerifyEmail';
 import { WishlistProvider } from './context/WishlistContext';
 
 
+
 function App() {
   return (
     <AuthProvider>

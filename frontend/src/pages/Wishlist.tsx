@@ -24,6 +24,7 @@ const Wishlist: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   if (isWishlistLoading) {
+
     return (
       <Container maxWidth="lg">
         <Typography>Loading wishlist...</Typography>

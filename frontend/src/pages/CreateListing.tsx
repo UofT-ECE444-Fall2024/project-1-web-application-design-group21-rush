@@ -63,6 +63,7 @@ const CreateListing: React.FC = () => {
         setUserName(response.username);
         setUserId(userId);
         //setUserId(response.user_id);
+
       } catch (err) {
         console.error('Error fetching user profile:', err);
         setError('Failed to fetch user information');
@@ -168,6 +169,7 @@ const CreateListing: React.FC = () => {
       }
 
       //formData.append('sellerName', 'Temporary User');
+
 
       // Add all images
       listing.images.forEach((file) => {

@@ -63,6 +63,7 @@ export const listingsApi = {
       }
     }
 
+
     try {
       const response = await axios.get(
         `${USER_SERVICE_URL}/api/users/wishlist/get`,
@@ -77,6 +78,7 @@ export const listingsApi = {
         return [];
       }
       
+
       const listingPromises = listingIds.map((id: string) => 
         listingsApi.getListingById(id)
       );
@@ -87,6 +89,7 @@ export const listingsApi = {
         data: listings,
         timestamp: Date.now()
       }));
+
 
       return listings;
     } catch (error) {
@@ -257,6 +260,7 @@ export const userApi = {
     try {
       const response = await axios.get(
         `${USER_SERVICE_URL}/api/users/user_info`,
+
         {
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -277,4 +281,5 @@ export const userApi = {
     });
     return response.data.user_id;
   },
+
 };
