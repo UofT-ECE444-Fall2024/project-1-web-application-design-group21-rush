@@ -1,5 +1,8 @@
 import os
 from flask import Flask, request, jsonify, render_template_string
+from flask_jwt_extended import (
+    jwt_required
+)
 from utils import upload_to_listings_s3
 from utils import upload_to_listings_table
 from utils import delete_from_listings_table
@@ -48,6 +51,7 @@ def upload_form():
     return render_template_string(UPLOAD_FORM_HTML)
 
 @app.route('/api/listings/upload', methods=['POST'])
+@jwt_required()
 def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
@@ -65,6 +69,7 @@ def upload():
         return jsonify({'error': 'Failed to upload file'}), 500
 
 @app.route('/api/listings/create-listing', methods=['POST'])
+@jwt_required()
 def create_listing():
     try:
         data = request.form.to_dict()  # Form data
@@ -121,6 +126,7 @@ def create_listing():
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/listings/delete/<id>', methods=['DELETE'])
+@jwt_required()
 def delete_listing(id):
     # attempt to delete the listing from the table
     success = delete_from_listings_table(id)
@@ -157,6 +163,7 @@ def get_all_listings_route():
         return jsonify({'error': 'Failed to fetch listings'}), 500
 
 @app.route('/api/listings/edit/<id>', methods=['PUT'])
+@jwt_required()
 def edit_listing(id):
     data = request.form.to_dict()  # Get form data
     files = request.files.getlist('file')  # Optional: new images
