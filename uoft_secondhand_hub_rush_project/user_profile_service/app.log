@@ -1,0 +1,1 @@
+2024-11-12 00:17:21,659 ERROR: An error occurred while checking table 'default_users_table': An error occurred (UnrecognizedClientException) when calling the DescribeTable operation: The security token included in the request is invalid. [in R:\school\444\project-1-web-application-design-group21-rush\uoft_secondhand_hub_rush_project\user_profile_service\utils.py:46]

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, Typography, Paper, TextField, MenuItem, Select, FormControl, Button, InputLabel, CircularProgress, Container, Alert } from '@mui/material';
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { Box, Grid, Typography, Link, Paper, TextField, MenuItem, Select, FormControl, Button, InputLabel, CircularProgress, Container, Alert } from '@mui/material';
+import { useParams, Navigate, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Listing } from '../types/listing';
 import { listingsApi, authApi } from '../services/api';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+
 
 const ProductInfo: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -211,7 +212,7 @@ const ProductInfo: React.FC = () => {
 
                 <Box sx={{ marginBottom: 1 }}>
                   <Typography variant="h6">
-                    <strong>Seller:</strong> {listing.sellerName} 
+                    <strong>Seller:</strong> <RouterLink to={`/user-view/${listing.sellerName}`}>{listing.sellerName}</RouterLink>  
                   </Typography>
                 </Box>
                 

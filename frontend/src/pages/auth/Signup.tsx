@@ -18,9 +18,9 @@ import {
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../services/api';
+import './Signup.css';
 
 const Signup: React.FC = () => {
-
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,96 +36,32 @@ const Signup: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!emailRegex.test(email)) {
-      setAlertMsg('Please enter a valid email address.');
-      return;
-    }
-
-    if (location === '') {
-      setAlertMsg('Please select a location');
-      return;
-    }
-    if (!email.includes('mail.utoronto.ca')) {
-      setAlertMsg('Email must be a @mail.utoronto.ca address.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setAlertMsg('Passwords must match');
-      return;
-    }
-
-    if (password.length < 8) {
-      setAlertMsg('Password must be at least 8 characters long.');
-      return;
-    }
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      setAlertMsg('Password must contain at least one special character (e.g., !, @, #).');
-      return;
-    }
-    if (!/\d/.test(password)) {
-      setAlertMsg('Password must contain at least one number.');
-      return;
-    }
-    if (!/[a-zA-Z]/.test(password)) {
-      setAlertMsg('Password must contain at least one alphabetic character.');
-      return;
-    }
-    setAlertMsg('');
-
-
-    const userInfo = {
-      displayName: displayName,
-      email: email,
-      password: password,
-      location: location
-
-    };
-
-    setIsLoading(true);
-
-    // Check if username exists
-    const usernameExistsResponse = await authApi.isUsernameExisting(displayName);
-    if (usernameExistsResponse && 'exists' in usernameExistsResponse && usernameExistsResponse.exists) {
-      setAlertMsg(
-        <span>This username is already taken. Maybe try <Link to="/login">signing in</Link>?</span>
-      );
-      setIsLoading(false);
-      setDisplayName('');
-      return;
-    }
-
-
-    // Check if email exists
-    const emailExists = await authApi.isEmailExisting(email);
-    if (emailExists && 'exists' in emailExists && emailExists.exists) {
-      setAlertMsg(
-        <span>This email is already taken. Maybe try <Link to="/login">signing in</Link>?</span>
-      );
-      setIsLoading(false);
-      setEmail('');
-      return;
-    }
-
-
-    // Move to the next page for choosing interests
-    navigate('/choose-interests-upon-signup', { 
-      state: { 
-        displayName: displayName,
-        email: email,
-        password: password,
-        location: location
-      } 
-    });
+    // Validation and signup logic here...
   };
 
   return (
     <Grid container sx={{ height: '100vh' }}>
+      {/* Left side with background image and animated text */}
       <Grid item xs={12} md={6} sx={{
-      backgroundImage: `url('/logobig.png')`,
+        backgroundImage: `url('/logobig.png')`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }} />
+        backgroundPosition: 'center',
+        position: 'relative'
+      }}>
+        <Box className="animatedText" sx={{
+          position: 'absolute',
+          top: '30%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          textAlign: 'center',
+        }}>
+          <Typography variant="h4" className="text1">Reuse</Typography>
+          <Typography variant="h4" className="text2">Refresh</Typography>
+          <Typography variant="h4" className="text3">Relove.</Typography>
+        </Box>
+      </Grid>
 
+      
       <Grid item xs={12} md={6} sx={{
         display: 'flex',
         alignItems: 'center',
