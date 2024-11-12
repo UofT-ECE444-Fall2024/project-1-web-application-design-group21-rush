@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
-import { Grid, Box, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Grid, Box, Container, CircularProgress, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
+import { authApi, listingsApi } from '../services/api';
+import { User } from '../types/user';
+import { useNavigate } from 'react-router-dom';
 
 const CenterImagePage: React.FC = () => {
     const categories = ['Sports Equipment', 'Books', 'Clothes', 'Laptops', 'Electronics', 'Furniture', 'Bikes', 'Collectables', 'Miscellaneous'];
-
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [editedUser, setEditedUser] = useState(user);
     const [profilePicSrc, setProfilePicSrc] = useState("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Unknown_person.jpg/1084px-Unknown_person.jpg?20200423155822");
-    // Handler functions to update state based on form input
     const [editState, setEditState] = useState(false);
-    const changeEditState = () => setEditState(!editState);
-
-    const [name, setName] = useState("John Doe");
-    const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => setName(event.target.value);
-
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [newImage, setNewImage] = useState<File | null>(null);
+
+
+    useEffect(() => {
+        const fetchUser = async () => {
+          try {
+            setIsLoading(true);
+            const response = await authApi.getCurrentUserInfo();
+            if (response) {
+                setUser(response as User);
+                setEditedUser(response);
+            }
+          } catch (error) {
+            setUser(null);
+          } finally {
+            setIsLoading(false);
+          };
+        };
+        fetchUser();
+    }, []);
+
     const handleCategoryChange = (category: string) => {
         setSelectedCategories((prev) => {
             if (prev.includes(category)) {
@@ -26,18 +46,70 @@ const CenterImagePage: React.FC = () => {
         });
     };
     
-    const [location, setLocation] = useState("Any");
-    const handleLocationChange = (event:any) => setLocation(event.target.value);;
+    const handleEditRequest = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (editedUser) {
+            setEditedUser({
+            ...editedUser,
+            [field]: event.target.value
+            });
+        }
+    };
 
     const handleProfilePic = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(event.target.files || []);
         selectedFiles.forEach(file => {
-            if (file.type) {
+            if (file.type && editedUser) {
+                setEditedUser({
+                ...editedUser,
+                profile_picture: URL.createObjectURL(file)
+                });
                 setProfilePicSrc(URL.createObjectURL(file));
             }
-            else {}
         });
+
+        const file = event.target.files?.[0];
+        if (file) {
+            setNewImage(file);
+            // Create preview URL for immediate display
+            const url = URL.createObjectURL(file);
+            if (editedUser) {
+                setEditedUser({
+                ...editedUser,
+                profile_picture: url
+                });
+                setProfilePicSrc(URL.createObjectURL(file));
+        }
+        }
     };
+
+    const handleSave = () => {
+        if (editedUser && user) {
+            const formData = new FormData();
+            // Add each field to formData, rename reserved keywords
+            formData.append('username', editedUser.username);
+            // formData.append('location', editedUser.location);
+            formData.append('categories', JSON.stringify(editedUser.categories));
+
+            if (newImage) {
+                formData.append('profile_picture', URL.createObjectURL(newImage));
+            }
+
+            authApi.editUser(user);
+            setUser(editedUser);
+            // setProfilePicSrc(null);
+            setEditState(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+          <>
+            <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Container>
+          </>
+        );
+      }
 
     return (
         <Box sx={{ flexGrow: 1, padding: 2 }}>
@@ -46,7 +118,7 @@ const CenterImagePage: React.FC = () => {
 
                 <Grid item xs={12} md={3} style={{ display: 'flex', gap: '10px', marginTop: '10px'}}>
                     <div style={{ textAlign: 'center' }}>
-                        <img src={profilePicSrc} style={{ width: '200px', height: '200px', borderRadius: '100px'}} />
+                        <img src={editedUser?.profile_picture || profilePicSrc} style={{ width: '200px', height: '200px', borderRadius: '100px'}} />
                     </div>
                 </Grid>
 
@@ -65,27 +137,32 @@ const CenterImagePage: React.FC = () => {
                         fullWidth size="small"
                         label="Name"
                         variant="outlined"
-                        value={name}
+                        value={editedUser?.username || ''}
                         style={styles.label}
-                        onChange={handleNameChange}
+                        onChange={handleEditRequest('name')}
                         InputLabelProps={{ style: { fontWeight: 'bold'} }}
                         InputProps={{
                             style: styles.label,
                             readOnly: !editState,
                         }}
                     />
-
                     <FormControl fullWidth size="small" disabled={!editState}>
                         <InputLabel  style={{ fontWeight: 'bold' } }>Location</InputLabel>
                         <Select 
                             style={styles.label}
-                            value={location}
-                            onChange={handleLocationChange}
+                            value={editedUser?.location || ''}
+                            onChange={(event) => {
+                                if (editedUser) {
+                                  setEditedUser({
+                                    ...editedUser,
+                                    location: event.target.value as string
+                                  });
+                                }
+                              }}
                             inputProps={{
                                 style: styles.label,
                                 readOnly: !editState,
                             }}>
-                            <MenuItem value="Any">All Locations</MenuItem>
                             <MenuItem value="St. George">St. George</MenuItem>
                             <MenuItem value="Mississauga">Mississauga</MenuItem>
                             <MenuItem value="Scarborough">Scarborough</MenuItem>
@@ -100,7 +177,7 @@ const CenterImagePage: React.FC = () => {
                                     <input
                                         type="checkbox"
                                         onChange={() => handleCategoryChange(category)}
-                                        checked={selectedCategories.includes(category)}
+                                        checked={editedUser?.categories?.includes(category)}
                                         disabled={!editState}
                                     />
                                     <label style={{ marginLeft: '5px' }}>{category}</label>
@@ -110,9 +187,15 @@ const CenterImagePage: React.FC = () => {
                     </div>
                 </Grid>
 
-                <button type="submit" style={styles.button} onClick={changeEditState}>
-                    {editState ? (<>Save Changes</>) : (<>Edit</>)}
-                </button>
+                {editState ? (
+                    <button type="submit" style={styles.button} onClick={handleSave}>
+                    Save Changes
+                    </button>
+                ) : (<>
+                    <button type="submit" style={styles.button} onClick={()=>setEditState(true)}>
+                    Edit
+                    </button>
+                </>)}
 
             </Grid>
         </Box>
