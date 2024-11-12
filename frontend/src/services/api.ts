@@ -164,7 +164,7 @@ export const listingsApi = {
   getListingsByUser: async (userId: string) => {
     try {
       console.log('Fetching listings for user:', userId);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       const response = await axios.get<{ listings: Listing[] }>(
         `${LISTINGS_SERVICE_URL}/api/listings/user/${userId}`,
         {
