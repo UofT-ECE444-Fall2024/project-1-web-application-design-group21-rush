@@ -48,6 +48,7 @@ const UserInterests: React.FC = () => {
     }
   };
 
+
   const handleContinue = async () => {
     if (interests.length < 1) {
       setAlertMsg('Please select at least 1 interest.');

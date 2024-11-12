@@ -259,7 +259,8 @@ export const userApi = {
   getUserProfile: async (token: string) => {
     try {
       const response = await axios.get(
-        `${USER_SERVICE_URL}/api/users/user_id`,
+        `${USER_SERVICE_URL}/api/users/user_info`,
+
         {
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -273,4 +274,12 @@ export const userApi = {
       throw error;
     }
   },
+
+  getUserID: async (token: string) => {
+    const response = await axios.get(`${USER_SERVICE_URL}/api/users/user_id`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data.user_id;
+  },
+
 };

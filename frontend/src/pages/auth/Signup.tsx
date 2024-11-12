@@ -94,6 +94,7 @@ const Signup: React.FC = () => {
       return;
     }
 
+
     // Check if email exists
     const emailExists = await authApi.isEmailExisting(email);
     if (emailExists && 'exists' in emailExists && emailExists.exists) {
