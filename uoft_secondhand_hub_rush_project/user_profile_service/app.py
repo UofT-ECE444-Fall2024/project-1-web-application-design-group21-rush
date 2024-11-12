@@ -17,13 +17,16 @@ from email.mime.text import MIMEText
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import datetime
+import json
 
 from utils import (
     get_user_table,
     upload_to_user_table,
     get_user_by_id,
+    get_user_by_username,
     scan_users_by_attribute,
     update_user,
+    upload_to_user_s3,
 )
 
 db = SQLAlchemy()
@@ -160,7 +163,10 @@ def create_app(config_filename=None):
     Factory function to create and configure the Flask application.
     """
     app = Flask(__name__)
-    CORS(app)
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}}, 
+         supports_credentials=True, 
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         allow_headers=["Content-Type", "Authorization"])
 
     # Load configuration
     if config_filename:
@@ -528,9 +534,24 @@ def register_routes(app):
 
     @app.route("/api/users/user_info", methods=["GET"])
     @jwt_required()
-    def get_user_info():
-        user_id = get_jwt_identity()
+    def get_user_info(username):
         
+        try:
+            user_info = get_user_by_username(username)
+            
+            if not user_info:
+                return jsonify({"error": "User not found"}), 404
+            
+            else:
+                return jsonify(user_info), 200
+                            
+        except Exception as e:
+            return jsonify({"error": "Could not access user database", "details": str(e)}), 500
+
+    @app.route("/api/users/current_user_info", methods=["GET"])
+    @jwt_required()
+    def get_current_user_info():
+        user_id = get_jwt_identity()
         try:
             user_info = get_user_by_id(user_id)
             
@@ -542,6 +563,7 @@ def register_routes(app):
                             
         except Exception as e:
             return jsonify({"error": "Could not access user database", "details": str(e)}), 500
+
 
     @app.route("/api/users/public_user_info", methods=["GET"])
     @jwt_required()
@@ -617,17 +639,37 @@ def register_routes(app):
     @jwt_required()
     def edit_user():
         user_id = get_jwt_identity()
-        data = request.get_json(silent=True)
+        data = request.form.to_dict()
 
+        # Optional: new images
+        files = request.files.getlist('file')  # Optional: new images
+    
+        # If there is new image, upload it to S3
+        if files:
+            for file in files:
+                filename = f"users/{user_id}/{file.filename}"  # Store in a folder named by listing id
+                file_url = upload_to_user_s3(file, filename)
+                if file_url:
+                    data['profile_picture'] = file_url
+                else:
+                    return jsonify({'error': 'Failed to upload one or more images'}), 500
+    
+        if 'file' in data:
+            del data['file']  # Remove the file key from data dictionary
+        
         if not data:
             return jsonify({"error": "No input data provided"}), 400
-
+        
+        if 'categories' in data:
+            data['categories'] = json.loads(data['categories'])
+       
         # Define fields that are allowed to be updated and their expected types
         allowed_fields = {
             "username": str,
             "wishlist": list,
             "categories": list,
             "location": str,
+            "profile_picture": str,
         }
 
         # Identify any disallowed fields in the input

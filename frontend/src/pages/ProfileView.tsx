@@ -1,43 +1,114 @@
-import React, { useState } from 'react';
-import { Grid, Box, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Grid, Box, Container, Alert, CircularProgress, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
+import { authApi } from '../services/api';
+import { User } from '../types/user';
 
 const CenterImagePage: React.FC = () => {
     const categories = ['Sports Equipment', 'Books', 'Clothes', 'Laptops', 'Electronics', 'Furniture', 'Bikes', 'Collectables', 'Miscellaneous'];
-
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [editedUser, setEditedUser] = useState(user);
+    const [alertMsg, setAlertMsg] = useState<string | JSX.Element>('');
     const [profilePicSrc, setProfilePicSrc] = useState("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Unknown_person.jpg/1084px-Unknown_person.jpg?20200423155822");
-    // Handler functions to update state based on form input
     const [editState, setEditState] = useState(false);
-    const changeEditState = () => setEditState(!editState);
+    const [newImage, setNewImage] = useState<File | null>(null);
 
-    const [name, setName] = useState("John Doe");
-    const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => setName(event.target.value);
 
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const handleCategoryChange = (category: string) => {
-        setSelectedCategories((prev) => {
-            if (prev.includes(category)) {
-                // Remove category if already selected
-                return prev.filter((item) => item !== category);
-            } else if (prev.length < 4) {
-                // Add category if not selected and less than 4 selected
-                return [...prev, category];
+    useEffect(() => {
+        const fetchUser = async () => {
+          try {
+            setIsLoading(true);
+            const response = await authApi.getCurrentUserInfo();
+            if (response) {
+                setUser(response as User);
+                setEditedUser(response);
             }
-            return prev; // Don't change state if already 4 selected
-        });
+          } catch (error) {
+            setUser(null);
+          } finally {
+            setIsLoading(false);
+          };
+        };
+        fetchUser();
+    }, []);
+
+    const handleCategoryChange = (category: string) => {
+        if (editedUser) {
+            const currentCategories = editedUser.categories || [];
+            let newCategories: string[];
+            
+            if (currentCategories.includes(category)) {
+                // Remove category if already selected
+                newCategories = currentCategories.filter((item) => item !== category);
+            } else if (currentCategories.length < 4) {
+                // Add category if not selected and less than 4 selected
+                newCategories = [...currentCategories, category];
+            } else {
+                return; // Don't change state if already 4 selected
+            }
+    
+            setEditedUser({
+                ...editedUser,
+                categories: newCategories
+            });
+        }
     };
     
-    const [location, setLocation] = useState("Any");
-    const handleLocationChange = (event:any) => setLocation(event.target.value);;
+    const handleEditRequest = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (editedUser) {
+            setEditedUser({
+            ...editedUser,
+            [field]: event.target.value
+            });
+        }
+    };
 
     const handleProfilePic = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFiles = Array.from(event.target.files || []);
-        selectedFiles.forEach(file => {
-            if (file.type) {
+        const file = event.target.files?.[0];
+        if (file) {
+            setNewImage(file);
+            // Create preview URL for immediate display
+            const url = URL.createObjectURL(file);
+            if (editedUser) {
+                setEditedUser({
+                ...editedUser,
+                profile_picture: url
+                });
                 setProfilePicSrc(URL.createObjectURL(file));
-            }
-            else {}
-        });
+        }
+        }
     };
+
+    const handleSave = () => {
+        if (editedUser && user) {
+            const formData = new FormData();
+            // Add each field to formData, rename reserved keywords
+            formData.append('location', editedUser.location);
+            formData.append('categories', JSON.stringify(editedUser.categories || []));
+
+            if (newImage) {
+                formData.append('profile_picture', URL.createObjectURL(newImage));
+                formData.append('file', newImage);
+            }
+
+            authApi.editUser(formData);
+            setUser(editedUser);
+            setEditState(false);
+
+        
+        }
+    };
+
+    if (isLoading) {
+        return (
+          <>
+            <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Container>
+          </>
+        );
+      }
 
     return (
         <Box sx={{ flexGrow: 1, padding: 2 }}>
@@ -46,7 +117,7 @@ const CenterImagePage: React.FC = () => {
 
                 <Grid item xs={12} md={3} style={{ display: 'flex', gap: '10px', marginTop: '10px'}}>
                     <div style={{ textAlign: 'center' }}>
-                        <img src={profilePicSrc} style={{ width: '200px', height: '200px', borderRadius: '100px'}} />
+                        <img src={editedUser?.profile_picture || profilePicSrc} style={{ width: '200px', height: '200px', borderRadius: '100px'}} />
                     </div>
                 </Grid>
 
@@ -61,31 +132,51 @@ const CenterImagePage: React.FC = () => {
                 }
                 
                 <Grid item xs={12} md={6} style={{ display: 'flex', gap: '10px', flexDirection: 'column', marginTop: '10px'}}>
+                    {alertMsg && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                        {alertMsg}
+                        </Alert>
+                    )}
                     <TextField
                         fullWidth size="small"
                         label="Name"
                         variant="outlined"
-                        value={name}
+                        value={editedUser?.username || ''}
                         style={styles.label}
-                        onChange={handleNameChange}
                         InputLabelProps={{ style: { fontWeight: 'bold'} }}
                         InputProps={{
                             style: styles.label,
-                            readOnly: !editState,
+                            readOnly: true,
                         }}
                     />
-
+                    <TextField
+                        fullWidth size="small"
+                        label="Email"
+                        variant="outlined"
+                        value={editedUser?.email || ''}
+                        style={styles.label}
+                        InputProps={{
+                            style: styles.label,
+                            readOnly: true, // Email should not be editable
+                        }}
+                    />
                     <FormControl fullWidth size="small" disabled={!editState}>
                         <InputLabel  style={{ fontWeight: 'bold' } }>Location</InputLabel>
                         <Select 
                             style={styles.label}
-                            value={location}
-                            onChange={handleLocationChange}
+                            value={editedUser?.location || ''}
+                            onChange={(event) => {
+                                if (editedUser) {
+                                  setEditedUser({
+                                    ...editedUser,
+                                    location: event.target.value as string
+                                  });
+                                }
+                              }}
                             inputProps={{
                                 style: styles.label,
                                 readOnly: !editState,
                             }}>
-                            <MenuItem value="Any">All Locations</MenuItem>
                             <MenuItem value="St. George">St. George</MenuItem>
                             <MenuItem value="Mississauga">Mississauga</MenuItem>
                             <MenuItem value="Scarborough">Scarborough</MenuItem>
@@ -100,7 +191,7 @@ const CenterImagePage: React.FC = () => {
                                     <input
                                         type="checkbox"
                                         onChange={() => handleCategoryChange(category)}
-                                        checked={selectedCategories.includes(category)}
+                                        checked={editedUser?.categories?.includes(category)}
                                         disabled={!editState}
                                     />
                                     <label style={{ marginLeft: '5px' }}>{category}</label>
@@ -110,9 +201,15 @@ const CenterImagePage: React.FC = () => {
                     </div>
                 </Grid>
 
-                <button type="submit" style={styles.button} onClick={changeEditState}>
-                    {editState ? (<>Save Changes</>) : (<>Edit</>)}
-                </button>
+                {editState ? (
+                    <button type="submit" style={styles.button} onClick={handleSave}>
+                    Save Changes
+                    </button>
+                ) : (<>
+                    <button type="submit" style={styles.button} onClick={()=>setEditState(true)}>
+                    Edit
+                    </button>
+                </>)}
 
             </Grid>
         </Box>
