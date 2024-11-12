@@ -283,3 +283,74 @@ def update_user(user_id, updates):
         current_app.logger.error(f"Failed to update user {user_id}: {e}")
         return False
 
+def upload_to_users_s3(file, filename):
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY'],
+        region_name=current_app.config['AWS_S3_REGION']
+    )
+    try:
+        s3_client.upload_fileobj(
+            file,
+            current_app.config['AWS_S3_USERS_BUCKET_NAME'],
+            filename
+        )
+        return f"https://{current_app.config['AWS_S3_USERS_BUCKET_NAME']}.s3.amazonaws.com/{filename}"
+    except Exception as e:
+        current_app.logger.error(f"Failed to upload to S3: {e}")
+        return None
+
+def delete_from_users_s3(filename):
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY'],
+        region_name=current_app.config['AWS_S3_REGION']
+    )
+    try:
+        s3_client.delete_object(
+            Bucket=current_app.config['AWS_S3_USERS_BUCKET_NAME'],
+            Key=filename
+        )
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Failed to delete from S3: {e}")
+        return False
+
+def get_image_from_users_s3(filename):
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY'],
+        region_name=current_app.config['AWS_S3_REGION']
+    )
+    try:
+        response = s3_client.get_object(
+            Bucket=current_app.config['AWS_S3_USERS_BUCKET_NAME'],
+            Key=filename
+        )
+        return response['Body']
+    except Exception as e:
+        current_app.logger.error(f"Failed to get image from S3: {e}")
+        return None
+
+def get_presigned_url_from_users_s3(filename, expiration=3600):
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY'],
+        region_name=current_app.config['AWS_S3_REGION']
+    )
+    try:
+        presigned_url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': current_app.config['AWS_S3_USERS_BUCKET_NAME'], 'Key': filename},
+            ExpiresIn=expiration
+        )
+        return presigned_url
+    except Exception as e:
+        current_app.logger.error(f"Failed to generate presigned URL from S3: {e}")
+        return None
+    
+    
