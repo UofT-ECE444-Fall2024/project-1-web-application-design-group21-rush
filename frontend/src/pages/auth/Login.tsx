@@ -18,22 +18,24 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
 
   const [alertMsg, setAlertMsg] = useState(''); // Show success or error messages
+  const [successMsg, setSuccessMsg] = useState('');
+  const [infoMsg, setInfoMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Email format checker
 
-  // Retrieve email and success message from location state
+
   const state = location.state as { email?: string; message?: string } | undefined;
 
-  // Set the email and alert message if passed from VerifyEmail
+
   useEffect(() => {
     if (state?.email) {
       setEmail(state.email);
     }
     if (state?.message) {
-      setAlertMsg(state.message);
+      setSuccessMsg(state.message);
     }
   }, [state]);
 
@@ -57,7 +59,7 @@ const Login: React.FC = () => {
       if ('access_token' in response) {
         login(response.access_token);
         localStorage.setItem('access_token', response.access_token);
-        setAlertMsg('Login successful!');
+        setSuccessMsg('Login successful!');
         setTimeout(() => navigate('/'), 1500);
       } else {
         setAlertMsg(response.error || 'Invalid email or password.');
@@ -81,11 +83,21 @@ const Login: React.FC = () => {
         </Typography>
 
         {alertMsg && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {alertMsg}
+            </Alert>
+          )}
 
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {alertMsg}
-          </Alert>
-        )}
+          {successMsg && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {successMsg}
+            </Alert>
+          )}
+            {infoMsg && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              {infoMsg}
+            </Alert>
+          )}
 
         <form onSubmit={handleLogin}>
           <Grid container spacing={2}>
