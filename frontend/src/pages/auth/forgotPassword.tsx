@@ -43,7 +43,7 @@ const ForgotPassword: React.FC = () => {
     try {
         const response = await authApi.ForgotPassword( email );
         if (response) {
-          setSuccessMsg('Password reset email sent! Please check your inbox.');
+          setSuccessMsg('Password reset email sent! Please check your inbox. Might take short moment.');
         } else {
           setAlertMsg('An error occurred. Please try again.');
         }

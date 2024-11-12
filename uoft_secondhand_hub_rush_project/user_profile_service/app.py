@@ -98,8 +98,10 @@ def send_password_reset_email(email, username, serializer):
     token = serializer.dumps(email, salt="password-reset-salt")
 
     # Build the password reset URL
-    frontend_base_url = "http://localhost:3000/api/users"  # Change this to your frontend's URL
+    frontend_base_url = "https://uoftsecondhandhub.com/api/users"  # Change this to your frontend's URL
     reset_url = f"{frontend_base_url}/reset_password/{token}"
+
+    # reset_url = url_for("reset_password", token=token, _external=True)
 
     # Email content
     subject = "Password Reset Request"
@@ -164,10 +166,11 @@ def create_app(config_filename=None):
     Factory function to create and configure the Flask application.
     """
     app = Flask(__name__)
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}}, 
-         supports_credentials=True, 
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         allow_headers=["Content-Type", "Authorization"])
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "https://uoftsecondhandhub.com"]}},
+     supports_credentials=True,
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"])
+
 
     # Load configuration
     if config_filename:
