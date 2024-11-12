@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Grid, Box, Container, CircularProgress, TextField } from '@mui/material';
-import { authApi } from '../services/api';
+import { Grid, Box, Container, CircularProgress, TextField, Paper, Typography, Alert } from '@mui/material';
+import { authApi , listingsApi} from '../services/api';
 import { User } from '../types/user';
 import { useNavigate } from 'react-router-dom';
+import { Listing } from '../types/listing';
+import ListingCard from '../components/listings/ListingCard';
 
 const CenterImagePage: React.FC = () => {
     const { username } = useParams<{ username: string }>();
@@ -11,6 +13,9 @@ const CenterImagePage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [profilePicSrc, setProfilePicSrc] = useState("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Unknown_person.jpg/1084px-Unknown_person.jpg?20200423155822");
     const navigate = useNavigate();
+    const [userListings, setUserListings] = useState<Listing[]>([]);
+    const [isListingsLoading, setIsListingsLoading] = useState(false);
+    const [listingsError, setListingsError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!username){
@@ -32,6 +37,29 @@ const CenterImagePage: React.FC = () => {
         };
         fetchUser();
     }, [username]);
+
+    useEffect(() => {
+        const fetchUserListings = async () => {
+          if (!user?.id) return;
+
+          setIsListingsLoading(true);
+          try {
+            console.log('Fetching listings for user ID:', user.id); // Debug log
+            const listings = await listingsApi.getListingsByUser(user.id);
+            console.log('Fetched listings:', listings); // Debug log
+            setUserListings(listings);
+          } catch (error) {
+            console.error('Error in fetchUserListings:', error);
+            setListingsError('Unable to load listings at this time');
+          } finally {
+            setIsListingsLoading(false);
+          }
+        };
+
+        if (user?.id) {
+          fetchUserListings();
+        }
+    }, [user?.id]);
 
     if (isLoading) {
         return (
@@ -91,6 +119,33 @@ const CenterImagePage: React.FC = () => {
                     />
                 </Grid>
             </Grid>
+            <Paper sx={{ p: 3, mt: 3 }}>
+                <Typography variant="h5" gutterBottom>
+                    My Listings
+                </Typography>
+
+                {isListingsLoading ? (
+                    <Box display="flex" justifyContent="center" my={4}>
+                        <CircularProgress />
+                    </Box>
+                ) : listingsError ? (
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                        {listingsError}
+                    </Alert>
+                ) : userListings.length === 0 ? (
+                    <Typography color="text.secondary">
+                        You haven't posted any listings yet.
+                    </Typography>
+                ) : (
+                    <Grid container spacing={3} sx={{ mt: 1 }}>
+                        {userListings.map((listing) => (
+                            <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                                <ListingCard listing={listing} />
+                            </Grid>
+                        ))}
+                    </Grid>
+                )}
+            </Paper>
         </Box>
     );
 };

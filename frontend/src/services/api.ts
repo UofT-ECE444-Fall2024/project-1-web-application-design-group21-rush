@@ -21,7 +21,7 @@ const LISTINGS_SERVICE_URL = process.env.REACT_APP_LISTINGs_SERVICE_URL ||'http:
 const SEARCH_SERVICE_URL = process.env.REACT_APP_SEARCH_SERVICE_URL || 'http://localhost:5003';
 
 // Base URL for the user service
-const USER_SERVICE_URL =    'http://localhost:5005';
+const USER_SERVICE_URL =   process.env.REACT_APP_USER_SERVICE_URL || 'http://localhost:5005';
 
 
 export const listingsApi = {
