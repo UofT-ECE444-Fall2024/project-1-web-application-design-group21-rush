@@ -84,6 +84,25 @@ def convert_decimals(obj):
     else:
         return obj
 
+def upload_to_user_s3(file, filename):
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY'],
+        region_name=current_app.config['AWS_S3_REGION']
+    )
+
+    try:
+        s3_client.upload_fileobj(
+            file,
+            current_app.config['AWS_S3_USERS_BUCKET_NAME'],
+            filename
+        )
+        return f"https://{current_app.config['AWS_S3_USERS_BUCKET_NAME']}.s3.amazonaws.com/{filename}"
+    except Exception as e:
+        current_app.logger.error(f"Failed to upload to S3: {e}")
+        return None
+
 def upload_to_user_table(user_data):
     """
     Uploads a user record to the DynamoDB table.
@@ -133,6 +152,32 @@ def get_user_by_id(user_id):
         )
         items = response.get('Items', [])
         current_app.logger.info(f"Queried DynamoDB for user_id={user_id}: Found {len(items)} items.")
+        if items:
+            return convert_decimals(items[0])
+        else:
+            return None
+    except Exception as e:
+        current_app.logger.error(f"Failed to query DynamoDB for user_id={user_id}: {e}")
+        return None
+
+def get_user_by_username(username):
+    """
+    Retrieves a user by their username using DynamoDB query.
+
+    Args:
+        user_id (str): The ID of the user to retrieve.
+
+    Returns:
+        dict or None: The user data if found, converted to native Python types, else None.
+    """
+    table = get_user_table()
+
+    try:
+        response = table.query(
+            KeyConditionExpression=Key('username').eq(username)
+        )
+        items = response.get('Items', [])
+        current_app.logger.info(f"Queried DynamoDB for username={username}: Found {len(items)} items.")
         if items:
             return convert_decimals(items[0])
         else:

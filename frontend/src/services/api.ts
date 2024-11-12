@@ -261,7 +261,7 @@ export const authApi = {
     }
 
     try {
-        const response = await axios.get(`${USER_SERVICE_URL}/api/users/user_info`, {
+        const response = await axios.get(`${USER_SERVICE_URL}/api/users/current_user_info`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -281,13 +281,42 @@ export const authApi = {
     }
   },
 
-  editUser: async (userData: Partial<User>): Promise<{ message: string } | ErrorResponse> => {
+  getUserInfo: async (username: string): Promise<User | null> => {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+          console.warn('No token found in localStorage');
+          return null;
+      }
+  
+      try {
+          const response = await axios.get(`${USER_SERVICE_URL}/api/users/user_info`, {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+              }
+          });
+  
+          if (response.status === 401) {
+              console.warn('Token expired or invalid');
+              localStorage.removeItem('access_token'); // Clear invalid token
+              return null;
+          }
+  
+          return response.data as User;
+      } catch (error) {
+          console.error('Error fetching user info:', error);
+          return null;
+      }
+    },
+
+
+  editUser: async (userData: FormData): Promise<{ message: string } | ErrorResponse> => {
     const token = localStorage.getItem('access_token');
     if (!token) return { error: 'No token found' };
 
     try {
       const response = await axios.post(
-        `${USER_SERVICE_URL}/api/users/edit`,
+        `${USER_SERVICE_URL}/api/users/edit_user`,
         userData,
         {
           headers: {
@@ -336,7 +365,7 @@ export const userApi = {
   getUserProfile: async (token: string) => {
     try {
       const response = await axios.get(
-        `${USER_SERVICE_URL}/api/users/user_info`,
+        `${USER_SERVICE_URL}/api/users/current_user_info`,
 
         {
           headers: { 

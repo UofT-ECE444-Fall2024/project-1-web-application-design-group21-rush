@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Box, Container, CircularProgress, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
-import { authApi, listingsApi } from '../services/api';
+import { useParams } from 'react-router-dom';
+import { Grid, Box, Container, Alert, CircularProgress, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
+import { authApi } from '../services/api';
 import { User } from '../types/user';
-import { useNavigate } from 'react-router-dom';
 
 const CenterImagePage: React.FC = () => {
     const categories = ['Sports Equipment', 'Books', 'Clothes', 'Laptops', 'Electronics', 'Furniture', 'Bikes', 'Collectables', 'Miscellaneous'];
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [editedUser, setEditedUser] = useState(user);
+    const [alertMsg, setAlertMsg] = useState<string | JSX.Element>('');
     const [profilePicSrc, setProfilePicSrc] = useState("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Unknown_person.jpg/1084px-Unknown_person.jpg?20200423155822");
     const [editState, setEditState] = useState(false);
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [newImage, setNewImage] = useState<File | null>(null);
 
 
@@ -34,16 +34,25 @@ const CenterImagePage: React.FC = () => {
     }, []);
 
     const handleCategoryChange = (category: string) => {
-        setSelectedCategories((prev) => {
-            if (prev.includes(category)) {
+        if (editedUser) {
+            const currentCategories = editedUser.categories || [];
+            let newCategories: string[];
+            
+            if (currentCategories.includes(category)) {
                 // Remove category if already selected
-                return prev.filter((item) => item !== category);
-            } else if (prev.length < 4) {
+                newCategories = currentCategories.filter((item) => item !== category);
+            } else if (currentCategories.length < 4) {
                 // Add category if not selected and less than 4 selected
-                return [...prev, category];
+                newCategories = [...currentCategories, category];
+            } else {
+                return; // Don't change state if already 4 selected
             }
-            return prev; // Don't change state if already 4 selected
-        });
+    
+            setEditedUser({
+                ...editedUser,
+                categories: newCategories
+            });
+        }
     };
     
     const handleEditRequest = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,17 +65,6 @@ const CenterImagePage: React.FC = () => {
     };
 
     const handleProfilePic = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFiles = Array.from(event.target.files || []);
-        selectedFiles.forEach(file => {
-            if (file.type && editedUser) {
-                setEditedUser({
-                ...editedUser,
-                profile_picture: URL.createObjectURL(file)
-                });
-                setProfilePicSrc(URL.createObjectURL(file));
-            }
-        });
-
         const file = event.target.files?.[0];
         if (file) {
             setNewImage(file);
@@ -86,18 +84,19 @@ const CenterImagePage: React.FC = () => {
         if (editedUser && user) {
             const formData = new FormData();
             // Add each field to formData, rename reserved keywords
-            formData.append('username', editedUser.username);
-            // formData.append('location', editedUser.location);
-            formData.append('categories', JSON.stringify(editedUser.categories));
+            formData.append('location', editedUser.location);
+            formData.append('categories', JSON.stringify(editedUser.categories || []));
 
             if (newImage) {
                 formData.append('profile_picture', URL.createObjectURL(newImage));
+                formData.append('file', newImage);
             }
 
-            authApi.editUser(user);
+            authApi.editUser(formData);
             setUser(editedUser);
-            // setProfilePicSrc(null);
             setEditState(false);
+
+        
         }
     };
 
@@ -133,17 +132,32 @@ const CenterImagePage: React.FC = () => {
                 }
                 
                 <Grid item xs={12} md={6} style={{ display: 'flex', gap: '10px', flexDirection: 'column', marginTop: '10px'}}>
+                    {alertMsg && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                        {alertMsg}
+                        </Alert>
+                    )}
                     <TextField
                         fullWidth size="small"
                         label="Name"
                         variant="outlined"
                         value={editedUser?.username || ''}
                         style={styles.label}
-                        onChange={handleEditRequest('name')}
                         InputLabelProps={{ style: { fontWeight: 'bold'} }}
                         InputProps={{
                             style: styles.label,
-                            readOnly: !editState,
+                            readOnly: true,
+                        }}
+                    />
+                    <TextField
+                        fullWidth size="small"
+                        label="Email"
+                        variant="outlined"
+                        value={editedUser?.email || ''}
+                        style={styles.label}
+                        InputProps={{
+                            style: styles.label,
+                            readOnly: true, // Email should not be editable
                         }}
                     />
                     <FormControl fullWidth size="small" disabled={!editState}>

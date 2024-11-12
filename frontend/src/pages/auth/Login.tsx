@@ -39,7 +39,7 @@ const Login: React.FC = () => {
 
   // Redirect to the root if the user is already authenticated
   if (isAuthenticated) {
-    // return <Navigate to="/" replace />;
+    return <Navigate to="/" replace />;
   }
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
