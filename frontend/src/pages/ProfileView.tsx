@@ -145,160 +145,160 @@ const ProfileView: React.FC = () => {
         );
     }
 
-    return (
+   
 
-        <Container maxWidth="lg">
-        <Box sx={{ flexGrow: 1, padding: 2 }}>
-            <Grid container spacing={2} style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-
-       
-
-                <Grid item xs={12} md={3} style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+        return (
+            <Container maxWidth="lg">
+              <Box sx={{ flexGrow: 1, padding: 2 }}>
+                <Grid container spacing={2} style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+          
+                  <Grid item xs={12} md={3} style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                     <div style={{ textAlign: 'center' }}>
-                        <img src={editedUser?.profile_picture || profilePicSrc} style={{ width: '200px', height: '200px', borderRadius: '100px' }} />
+                      <img src={editedUser?.profile_picture || profilePicSrc} style={{ width: '200px', height: '200px', borderRadius: '100px' }} />
                     </div>
-                </Grid>
-
-                {editState ? (
+                  </Grid>
+          
+                  {editState ? (
                     <input
-                        type="file"
-                        multiple
-                        onChange={handleProfilePic}
-                        accept=".jpg,.jpeg,.png" // Accept specific file types
-                    />)
-                    : (<></>)
-                }
-
-                <Grid item xs={12} md={6} style={{ display: 'flex', gap: '10px', flexDirection: 'column', marginTop: '10px' }}>
+                      type="file"
+                      multiple
+                      onChange={handleProfilePic}
+                      accept=".jpg,.jpeg,.png"
+                    />
+                  ) : null}
+          
+                  <Grid item xs={12} md={6} style={{ display: 'flex', gap: '10px', flexDirection: 'column', marginTop: '10px' }}>
                     {alertMsg && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {alertMsg}
-                        </Alert>
+                      <Alert severity="error" sx={{ mb: 2 }}>
+                        {alertMsg}
+                      </Alert>
                     )}
                     <TextField
-                        fullWidth size="small"
-                        label="Name"
-                        variant="outlined"
-                        value={editedUser?.username || ''}
-                        style={styles.label}
-                        InputLabelProps={{ style: { fontWeight: 'bold' } }}
-                        InputProps={{
-                            style: styles.label,
-                            readOnly: true,
-                        }}
+                      fullWidth size="small"
+                      label="Name"
+                      variant="outlined"
+                      value={editedUser?.username || ''}
+                      style={styles.label}
+                      InputLabelProps={{ style: { fontWeight: 'bold' } }}
+                      InputProps={{
+                        style: styles.label,
+                        readOnly: true,
+                      }}
                     />
                     <TextField
-                        fullWidth size="small"
-                        label="Email"
-                        variant="outlined"
-                        value={editedUser?.email || ''}
-                        style={styles.label}
-                        InputProps={{
-                            style: styles.label,
-                            readOnly: true, // Email should not be editable
-                        }}
+                      fullWidth size="small"
+                      label="Email"
+                      variant="outlined"
+                      value={editedUser?.email || ''}
+                      style={styles.label}
+                      InputProps={{
+                        style: styles.label,
+                        readOnly: true,
+                      }}
                     />
                     <FormControl fullWidth size="small" disabled={!editState}>
-                        <InputLabel style={{ fontWeight: 'bold' }}>Location</InputLabel>
-                        <Select
-                            style={styles.label}
-                            value={editedUser?.location || ''}
-                            onChange={(event) => {
-                                if (editedUser) {
-                                    setEditedUser({
-                                        ...editedUser,
-                                        location: event.target.value as string
-                                    });
-                                }
-                            }}
-                            inputProps={{
-                                style: styles.label,
-                                readOnly: !editState,
-                            }}>
-                            <MenuItem value="St. George">St. George</MenuItem>
-                            <MenuItem value="Mississauga">Mississauga</MenuItem>
-                            <MenuItem value="Scarborough">Scarborough</MenuItem>
-                        </Select>
+                      <InputLabel style={{ fontWeight: 'bold' }}>Location</InputLabel>
+                      <Select
+                        style={styles.label}
+                        value={editedUser?.location || ''}
+                        onChange={(event) => {
+                          if (editedUser) {
+                            setEditedUser({
+                              ...editedUser,
+                              location: event.target.value as string
+                            });
+                          }
+                        }}
+                        inputProps={{
+                          style: styles.label,
+                          readOnly: !editState,
+                        }}>
+                        <MenuItem value="St. George">St. George</MenuItem>
+                        <MenuItem value="Mississauga">Mississauga</MenuItem>
+                        <MenuItem value="Scarborough">Scarborough</MenuItem>
+                      </Select>
                     </FormControl>
                     <button
-                        onClick={handleChangePassword}
-                        style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#f5f5f5', // Light grey background
-                            color: '#d32f2f', // Red text
-                            border: '1px solid #808080', // Red border
-                            borderRadius: '12px', // Rounded corners
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            transition: 'background-color 0.3s ease',
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'} // Slightly darker grey on hover
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                      onClick={handleChangePassword}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#f5f5f5',
+                        color: '#d32f2f',
+                        border: '1px solid #808080',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.3s ease',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
                     >
-                        Change Password
+                      Change Password
                     </button>
                     <div>
-                        <h5 style={styles.label}>Categories (up to 4):</h5>
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            {categories.map((category) => (
-                                <div key={category} style={{ display: 'flex', alignItems: 'center' }}>
-                                    <input
-                                        type="checkbox"
-                                        onChange={() => handleCategoryChange(category)}
-                                        checked={editedUser?.categories?.includes(category)}
-                                        disabled={!editState}
-                                    />
-                                    <label style={{ marginLeft: '5px' }}>{category}</label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </Grid>
-
-                {editState ? (
-                    <button type="submit" style={styles.button} onClick={handleSave}>
-                        Save Changes
-                    </button>
-                ) : (<>
-                    <button type="submit" style={styles.button} onClick={() => setEditState(true)}>
-                        Edit
-                    </button>
-                </>)}
-
-            </Grid>
-
-            <Paper sx={{ p: 3, mt: 3 }}>
-                <Typography variant="h5" gutterBottom>
-                    My Listings
-                </Typography>
-
-                {isListingsLoading ? (
-                    <Box display="flex" justifyContent="center" my={4}>
-                        <CircularProgress />
-                    </Box>
-                ) : listingsError ? (
-                    <Alert severity="error" sx={{ mt: 2 }}>
-                        {listingsError}
-                    </Alert>
-                ) : userListings.length === 0 ? (
-                    <Typography color="text.secondary">
-                        You haven't posted any listings yet.
-                    </Typography>
-                ) : (
-                    <Grid container spacing={3} sx={{ mt: 1 }}>
-                        {userListings.map((listing) => (
-                            <Grid item xs={12} sm={6} md={4} key={listing.id}>
-                                <ListingCard listing={listing} />
-                            </Grid>
+                      <h5 style={styles.label}>Categories (up to 4):</h5>
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        {categories.map((category) => (
+                          <div key={category} style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type="checkbox"
+                              onChange={() => handleCategoryChange(category)}
+                              checked={editedUser?.categories?.includes(category)}
+                              disabled={!editState}
+                            />
+                            <label style={{ marginLeft: '5px' }}>{category}</label>
+                          </div>
                         ))}
+                      </div>
+                    </div>
+                  </Grid>
+          
+                  {editState ? (
+                    <button type="submit" style={styles.button} onClick={handleSave}>
+                      Save Changes
+                    </button>
+                  ) : (
+                    <button type="submit" style={styles.button} onClick={() => setEditState(true)}>
+                      Edit
+                    </button>
+                  )}
+          
+                </Grid>
+          
+                <Paper sx={{ p: 3, mt: 3 }}>
+                  <Typography variant="h5" gutterBottom>
+                    My Listings
+                  </Typography>
+          
+                  {isListingsLoading ? (
+                    <Box display="flex" justifyContent="center" my={4}>
+                      <CircularProgress />
+                    </Box>
+                  ) : listingsError ? (
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                      {listingsError}
+                    </Alert>
+                  ) : userListings.length === 0 ? (
+                    <Typography color="text.secondary">
+                      You haven't posted any listings yet.
+                    </Typography>
+                  ) : (
+                    <Grid container spacing={3} sx={{ mt: 1 }}>
+                      {userListings.map((listing) => (
+                        <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                          <ListingCard listing={listing} />
+                        </Grid>
+                      ))}
                     </Grid>
-                )}
-            </Paper>
-        </Container>
-    );
+                  )}
+                </Paper>
+              </Box>
+            </Container>
+          );
+          
 };
 
 const styles = {
