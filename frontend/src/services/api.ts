@@ -132,12 +132,14 @@ export const listingsApi = {
   },
 
   editListing: async (id: string, listingData: FormData) => {
+    const token = localStorage.getItem('token');
     const response = await axios.put<Listing>(
       `${LISTINGS_SERVICE_URL}/api/listings/edit/${id}`,
       listingData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
         },
       }
     );
@@ -150,7 +152,12 @@ export const listingsApi = {
   // },
   deleteListing: async (id: string) => {
     try {
-      const response = await axios.delete(`${LISTINGS_SERVICE_URL}/api/listings/delete/${id}`);
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(`${LISTINGS_SERVICE_URL}/api/listings/delete/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return { success: true, data: response.data };
     } catch (error) {
       throw new Error(axios.isAxiosError(error) ? error.response?.data?.message || 'Failed to delete listing' : 'Failed to delete listing');
