@@ -187,7 +187,7 @@ export const authApi = {
 
     try {
       const response = await axios.post<LogoutResponse>(
-        `${USER_SERVICE_URL}/api/users/pre_register/logout`,
+        `${USER_SERVICE_URL}/api/users/logout`,
         {},
         {
           headers: {
