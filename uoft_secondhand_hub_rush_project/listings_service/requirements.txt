@@ -8,3 +8,5 @@ boto3
 pytest
 moto[boto3]
 python-dotenv
+Flask-JWT-Extended==4.4.4
+requests

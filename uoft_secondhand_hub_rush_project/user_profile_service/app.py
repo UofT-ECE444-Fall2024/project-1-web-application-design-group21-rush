@@ -5,7 +5,6 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity,
     get_jwt,
-    jwt_required,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid

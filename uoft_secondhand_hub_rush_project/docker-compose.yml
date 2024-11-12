@@ -12,6 +12,7 @@ services:
       AWS_DB_LISTINGS_TABLE_NAME: ${AWS_DB_LISTINGS_TABLE_NAME}
       AWS_S3_REGION: ${AWS_S3_REGION}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      USER_PROFILE_SERVICE_URL: "http://user_profile_service:5005/api/users/current_user_info"
     command: flask run --host=0.0.0.0 --port=5000
 
   ratings_service:

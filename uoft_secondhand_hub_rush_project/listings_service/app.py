@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity,
     get_jwt,
-    jwt_required,
+
 )
 from utils import upload_to_listings_s3
 from utils import upload_to_listings_table
@@ -21,7 +21,7 @@ from decimal import Decimal
 from flask_cors import CORS
 import traceback
 import boto3
-
+import requests
 
 
 app = Flask(__name__)
@@ -61,12 +61,41 @@ def create_listing():
         if not files:
             return jsonify({'error': 'At least one image is required'}), 400
 
+        # Retrieve JWT from incoming request
+        auth_header = request.headers.get('Authorization', None)
+        if not auth_header:
+            return jsonify({'error': 'Authorization header missing'}), 401
+
+        # Get the user_profile_service URL from environment variables
+        user_profile_url = os.getenv('USER_PROFILE_SERVICE_URL')
+        if not user_profile_url:
+            return jsonify({'error': 'User profile service URL not configured'}), 500
+
+        headers = {
+            'Authorization': auth_header
+        }
+
+        # Make a GET request to user_profile_service to fetch user info
+        response = requests.get(user_profile_url, headers=headers, timeout=5)
+
+        if response.status_code != 200:
+            error_message = response.json().get('error', 'Failed to retrieve user information')
+            return jsonify({'error': error_message}), response.status_code
+
+        user_info = response.json()
+        seller_id = user_info.get('id')
+        seller_name = user_info.get('username')  # Adjust based on your user_info structure
+
+        if not seller_id or not seller_name:
+            return jsonify({'error': 'Invalid user information received'}), 400
+
         image_urls = []
         for file in files:
             if file.filename == '':
                 continue
-            
-            filename = f"listings/{data['id']}/{file.filename}"  # store them in a folder named by listing id
+
+            # Optional: Sanitize filename to prevent security issues
+            filename = f"listings/{seller_id}/{file.filename}"
             file_url = upload_to_listings_s3(file, filename)
             if file_url:
                 image_urls.append(file_url)
@@ -75,6 +104,12 @@ def create_listing():
 
         if not image_urls:
             return jsonify({'error': 'No valid images were uploaded'}), 400
+
+        # Ensure all required fields are present
+        required_fields = ['id', 'title', 'description', 'price', 'location', 'condition', 'category', 'datePosted']
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return jsonify({'error': f"Missing fields: {', '.join(missing_fields)}"}), 400
 
         listing_data = {
             'id': data['id'],
@@ -86,8 +121,8 @@ def create_listing():
             'category': data['category'],
             'images': image_urls,  # Keep as list for JSON response
             'datePosted': data['datePosted'],
-            'sellerId': data['sellerId'],
-            'sellerName': data['sellerName']
+            'sellerId': seller_id,
+            'sellerName': seller_name
         }
 
         # Create a copy of the data for DynamoDB with images as a set
@@ -103,6 +138,10 @@ def create_listing():
             return jsonify({'message': 'Listing created successfully', 'listing': response_data}), 200
         return jsonify({'error': 'Failed to create listing'}), 500
 
+    except requests.exceptions.RequestException as req_err:
+        print(f"HTTP Request failed: {str(req_err)}")
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to communicate with user service'}), 502
     except Exception as e:
         print(f"Error creating listing: {str(e)}")
         traceback.print_exc()
