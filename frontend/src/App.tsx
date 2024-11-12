@@ -41,7 +41,7 @@ function App() {
                 <Route path='/choose-interests-upon-signup' element={<UserInterests/>}/>
                 <Route path='/verifyEmail' element={<VerifyEmail/>}/>
                 <Route path='/forgotPassword' element={<ForgotPassword/>}/>
-                <Route path="/api/users/reset_password/:token" element={<ResetPassword />} />
+                <Route path="/reset_password/:token" element={<ResetPassword />} />
                 <Route path="/change-password" element={<ChangePassword />} />
                 {/* Protected Routes */}
                 

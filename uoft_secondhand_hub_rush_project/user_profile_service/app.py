@@ -98,7 +98,7 @@ def send_password_reset_email(email, username, serializer):
     token = serializer.dumps(email, salt="password-reset-salt")
 
     # Build the password reset URL
-    frontend_base_url = "https://uoftsecondhandhub.com/api/users"  # Change this to your frontend's URL
+    frontend_base_url = "https://uoftsecondhandhub.com"  # Change this to your frontend's URL
     reset_url = f"{frontend_base_url}/reset_password/{token}"
 
     # reset_url = url_for("reset_password", token=token, _external=True)

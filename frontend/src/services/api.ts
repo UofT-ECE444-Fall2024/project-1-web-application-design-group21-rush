@@ -413,6 +413,7 @@ export const authApi = {
   },
   resetPassword: async (token: string, new_password: string): Promise<{ message: string } | ErrorResponse> => {
     try {
+      console.log(token);
       const response = await axios.post<{ message: string }>(`${USER_SERVICE_URL}/api/users/reset_password/${token}`, {
         new_password,
       });
