@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Grid, Box, Container, Alert, CircularProgress, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
 import { authApi } from '../services/api';
 import { User } from '../types/user';
@@ -13,22 +13,23 @@ const CenterImagePage: React.FC = () => {
     const [profilePicSrc, setProfilePicSrc] = useState("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Unknown_person.jpg/1084px-Unknown_person.jpg?20200423155822");
     const [editState, setEditState] = useState(false);
     const [newImage, setNewImage] = useState<File | null>(null);
+    const navigate = useNavigate();
 
 
     useEffect(() => {
         const fetchUser = async () => {
-          try {
-            setIsLoading(true);
-            const response = await authApi.getCurrentUserInfo();
-            if (response) {
-                setUser(response as User);
-                setEditedUser(response);
-            }
-          } catch (error) {
-            setUser(null);
-          } finally {
-            setIsLoading(false);
-          };
+            try {
+                setIsLoading(true);
+                const response = await authApi.getCurrentUserInfo();
+                if (response) {
+                    setUser(response as User);
+                    setEditedUser(response);
+                }
+            } catch (error) {
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            };
         };
         fetchUser();
     }, []);
@@ -37,7 +38,7 @@ const CenterImagePage: React.FC = () => {
         if (editedUser) {
             const currentCategories = editedUser.categories || [];
             let newCategories: string[];
-            
+
             if (currentCategories.includes(category)) {
                 // Remove category if already selected
                 newCategories = currentCategories.filter((item) => item !== category);
@@ -47,19 +48,19 @@ const CenterImagePage: React.FC = () => {
             } else {
                 return; // Don't change state if already 4 selected
             }
-    
+
             setEditedUser({
                 ...editedUser,
                 categories: newCategories
             });
         }
     };
-    
+
     const handleEditRequest = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
         if (editedUser) {
             setEditedUser({
-            ...editedUser,
-            [field]: event.target.value
+                ...editedUser,
+                [field]: event.target.value
             });
         }
     };
@@ -72,11 +73,11 @@ const CenterImagePage: React.FC = () => {
             const url = URL.createObjectURL(file);
             if (editedUser) {
                 setEditedUser({
-                ...editedUser,
-                profile_picture: url
+                    ...editedUser,
+                    profile_picture: url
                 });
                 setProfilePicSrc(URL.createObjectURL(file));
-        }
+            }
         }
     };
 
@@ -96,45 +97,49 @@ const CenterImagePage: React.FC = () => {
             setUser(editedUser);
             setEditState(false);
 
-        
+
         }
     };
-
+    const handleChangePassword = () => {
+        navigate('/change-password');
+    }
     if (isLoading) {
         return (
-          <>
-            <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-              <CircularProgress />
-            </Container>
-          </>
+            <>
+                <Container sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                    <CircularProgress />
+                </Container>
+            </>
         );
-      }
+    }
 
     return (
         <Box sx={{ flexGrow: 1, padding: 2 }}>
-            <Grid container spacing={2} style={{display: 'flex', flexDirection: 'column',alignItems: 'center', 
-                justifyContent: 'center'}}>
+            <Grid container spacing={2} style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center'
+            }}>
 
-                <Grid item xs={12} md={3} style={{ display: 'flex', gap: '10px', marginTop: '10px'}}>
+                <Grid item xs={12} md={3} style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                     <div style={{ textAlign: 'center' }}>
-                        <img src={editedUser?.profile_picture || profilePicSrc} style={{ width: '200px', height: '200px', borderRadius: '100px'}} />
+                        <img src={editedUser?.profile_picture || profilePicSrc} style={{ width: '200px', height: '200px', borderRadius: '100px' }} />
                     </div>
                 </Grid>
 
                 {editState ? (
-                    <input 
-                    type="file" 
-                    multiple 
-                    onChange={handleProfilePic}
-                    accept=".jpg,.jpeg,.png" // Accept specific file types
-                    />) 
+                    <input
+                        type="file"
+                        multiple
+                        onChange={handleProfilePic}
+                        accept=".jpg,.jpeg,.png" // Accept specific file types
+                    />)
                     : (<></>)
                 }
-                
-                <Grid item xs={12} md={6} style={{ display: 'flex', gap: '10px', flexDirection: 'column', marginTop: '10px'}}>
+
+                <Grid item xs={12} md={6} style={{ display: 'flex', gap: '10px', flexDirection: 'column', marginTop: '10px' }}>
                     {alertMsg && (
                         <Alert severity="error" sx={{ mb: 2 }}>
-                        {alertMsg}
+                            {alertMsg}
                         </Alert>
                     )}
                     <TextField
@@ -143,7 +148,7 @@ const CenterImagePage: React.FC = () => {
                         variant="outlined"
                         value={editedUser?.username || ''}
                         style={styles.label}
-                        InputLabelProps={{ style: { fontWeight: 'bold'} }}
+                        InputLabelProps={{ style: { fontWeight: 'bold' } }}
                         InputProps={{
                             style: styles.label,
                             readOnly: true,
@@ -161,18 +166,18 @@ const CenterImagePage: React.FC = () => {
                         }}
                     />
                     <FormControl fullWidth size="small" disabled={!editState}>
-                        <InputLabel  style={{ fontWeight: 'bold' } }>Location</InputLabel>
-                        <Select 
+                        <InputLabel style={{ fontWeight: 'bold' }}>Location</InputLabel>
+                        <Select
                             style={styles.label}
                             value={editedUser?.location || ''}
                             onChange={(event) => {
                                 if (editedUser) {
-                                  setEditedUser({
-                                    ...editedUser,
-                                    location: event.target.value as string
-                                  });
+                                    setEditedUser({
+                                        ...editedUser,
+                                        location: event.target.value as string
+                                    });
                                 }
-                              }}
+                            }}
                             inputProps={{
                                 style: styles.label,
                                 readOnly: !editState,
@@ -182,7 +187,23 @@ const CenterImagePage: React.FC = () => {
                             <MenuItem value="Scarborough">Scarborough</MenuItem>
                         </Select>
                     </FormControl>
-
+                    <button
+                        onClick={handleChangePassword}
+                        style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#f5f5f5', // Light grey background
+                            color: '#d32f2f', // Red text
+                            border: '1px solid #808080', // Red border
+                            borderRadius: '12px', // Rounded corners
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            transition: 'background-color 0.3s ease',
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'} // Slightly darker grey on hover
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                    >
+                        Change Password
+                    </button>
                     <div>
                         <h5 style={styles.label}>Categories (up to 4):</h5>
                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -203,11 +224,11 @@ const CenterImagePage: React.FC = () => {
 
                 {editState ? (
                     <button type="submit" style={styles.button} onClick={handleSave}>
-                    Save Changes
+                        Save Changes
                     </button>
                 ) : (<>
-                    <button type="submit" style={styles.button} onClick={()=>setEditState(true)}>
-                    Edit
+                    <button type="submit" style={styles.button} onClick={() => setEditState(true)}>
+                        Edit
                     </button>
                 </>)}
 
@@ -218,15 +239,15 @@ const CenterImagePage: React.FC = () => {
 
 const styles = {
     infoBlock: {
-      marginTop: '20px',
-      padding: '20px',
-      width: '80%',
-      maxWidth: '400px',
-      backgroundColor: '#ffffff',
-      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-      borderRadius: '10px',
-      textAlign: 'center' as 'center',
-    }as React.CSSProperties,
+        marginTop: '20px',
+        padding: '20px',
+        width: '80%',
+        maxWidth: '400px',
+        backgroundColor: '#ffffff',
+        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+        borderRadius: '10px',
+        textAlign: 'center' as 'center',
+    } as React.CSSProperties,
     profileInfo: {
         display: 'flex',
         alignItems: 'center',
@@ -274,6 +295,6 @@ const styles = {
         fontSize: '1em',
         color: '#666',
     } as React.CSSProperties,
-  };
+};
 
 export default CenterImagePage;

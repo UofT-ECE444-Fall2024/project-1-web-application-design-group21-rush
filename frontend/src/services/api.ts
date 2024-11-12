@@ -12,6 +12,7 @@ import {
 } from './types';
 import ForgotPassword from '../pages/auth/forgotPassword';
 import ResetPassword from '../pages/auth/reset_password';
+import ChangePassword from '../pages/auth/changePassword';
 
 // This file contains functions to interact with the backend services for listings and search.
 // TODO: Replace direct service URLs with API Gateway once implemented
@@ -378,6 +379,24 @@ export const authApi = {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
     }
   },
+  ChangePassword: async (old_password: string, new_password: string): Promise<{ message: string } | ErrorResponse> => {
+    try {
+      const token = localStorage.getItem('accessToken'); // Assuming the token is stored in localStorage
+      const response = await axios.post<{ message: string }>(
+        `${USER_SERVICE_URL}/api/users/change_password`,
+        { old_password, new_password },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token here
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
+  
   
 
 };

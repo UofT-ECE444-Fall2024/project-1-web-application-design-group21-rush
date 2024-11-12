@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { authApi } from '../../services/api';
 
-const ResetPassword: React.FC = () => {
+const ChangePassword: React.FC = () => {
 
+  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [alertMsg, setAlertMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [alertSeverity, setAlertSeverity] = useState<'success' | 'error'>('error');
@@ -21,10 +21,6 @@ const ResetPassword: React.FC = () => {
     setSuccessMsg('');
     e.preventDefault();
 
-    if (newPassword !== confirmPassword) {
-      setAlertMsg('Passwords do not match.');
-      return;
-    }
     if (newPassword.length < 8) {
         setAlertMsg('Password must be at least 8 characters long.');
         return;
@@ -46,11 +42,11 @@ const ResetPassword: React.FC = () => {
     setAlertMsg('');
     try {
 
-        const response = await authApi.resetPassword(token || '', newPassword);
+        const response = await authApi.ChangePassword(oldPassword, newPassword);
 
         if ('message' in response) {
-          setSuccessMsg('Password reset successfully! Redirecting to login...');
-          setTimeout(() => navigate('/login'), 2000); // Redirect to login page after 2 seconds
+          setSuccessMsg('Password reset successfully! Redirecting...');
+          setTimeout(() => navigate('/profile-view'), 2000); // Redirect to login page after 2 seconds
         } else {
           setAlertMsg(response.error || 'An error occurred. Please try again.');
         }
@@ -84,23 +80,23 @@ const ResetPassword: React.FC = () => {
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
+                label="Old Password"
+                variant="outlined"
+                type="password"
+                fullWidth
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
                 label="New Password"
                 variant="outlined"
                 type="password"
                 fullWidth
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Confirm New Password"
-                variant="outlined"
-                type="password"
-                fullWidth
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </Grid>
@@ -122,4 +118,4 @@ const ResetPassword: React.FC = () => {
   );
 };
 
-export default ResetPassword;
+export default ChangePassword;
