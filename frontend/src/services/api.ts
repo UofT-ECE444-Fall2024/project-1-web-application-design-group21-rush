@@ -21,7 +21,7 @@ const LISTINGS_SERVICE_URL = process.env.REACT_APP_LISTINGs_SERVICE_URL ||'http:
 const SEARCH_SERVICE_URL = process.env.REACT_APP_SEARCH_SERVICE_URL || 'http://localhost:5003';
 
 // Base URL for the user service
-const USER_SERVICE_URL =   process.env.REACT_APP_USER_SERVICE_URL || 'http://localhost:5005';
+const USER_SERVICE_URL =    'http://localhost:5005';
 
 
 export const listingsApi = {
@@ -154,6 +154,47 @@ export const listingsApi = {
       return { success: true, data: response.data };
     } catch (error) {
       throw new Error(axios.isAxiosError(error) ? error.response?.data?.message || 'Failed to delete listing' : 'Failed to delete listing');
+    }
+  },
+
+  getListingsByUser: async (userId: string) => {
+    try {
+      console.log('Fetching listings for user:', userId);
+      const token = localStorage.getItem('token');
+      const response = await axios.get<{ listings: Listing[] }>(
+        `${LISTINGS_SERVICE_URL}/api/listings/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      // Transform the listings to ensure proper format
+      const formattedListings = response.data.listings.map(listing => ({
+        ...listing,
+        // Convert price to number if it's a string
+        price: typeof listing.price === 'string' ? parseFloat(listing.price) : listing.price,
+        // Ensure images is an array
+        images: Array.isArray(listing.images) ? listing.images : 
+                typeof listing.images === 'object' ? Array.from(listing.images as Set<string>) : 
+                listing.images ? [listing.images] : [],
+        // Set imageUrl from first image if not present
+        imageUrl: listing.imageUrl || (Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : undefined)
+      }));
+
+      console.log('Formatted listings:', formattedListings);
+      return formattedListings;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message
+        });
+      }
+      return [];
     }
   },
 };
