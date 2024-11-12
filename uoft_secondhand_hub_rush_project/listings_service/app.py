@@ -156,9 +156,7 @@ def edit_listing(id):
 
     user_id = get_jwt_identity()
     listingInfo = get_listing_by_listing_id(id)
-    if (user_id == listingInfo['sellerId']):
-        pass
-    else:
+    if (user_id != listingInfo['sellerId']):
         return jsonify({'error': 'Permission denied. Failed to update listing'}), 500
 
     # If there are new images, upload them to S3
