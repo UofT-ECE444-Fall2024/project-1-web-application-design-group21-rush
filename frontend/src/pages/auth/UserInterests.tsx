@@ -62,7 +62,7 @@ const UserInterests: React.FC = () => {
     setIsLoading(true);
     console.log('Selected interests:', interests);
 
-    const interestsString = interests.join(',');
+    //const interestsString = interests.join(',');
 
     try {
       const response = await authApi.preRegisterUser({
@@ -70,7 +70,7 @@ const UserInterests: React.FC = () => {
         email: email,
         password: password,
         location: userLocation,
-        categories: interestsString,
+        categories: interests,
       });
       console.log(response);
     } catch (error) {
