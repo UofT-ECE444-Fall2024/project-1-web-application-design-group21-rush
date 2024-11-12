@@ -13,6 +13,7 @@ import {
   Grid
 } from '@mui/material';
 import { authApi } from '../../services/api';
+import './Signup.css';
 
 interface LocationState {
   email?: string;
@@ -94,8 +95,21 @@ const VerifyEmail: React.FC = () => {
       <Grid item xs={12} md={6} sx={{
         backgroundImage: `url('/logobig.png')`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }} />
+        backgroundPosition: 'center',
+        position: 'relative'
+      }}>
+        <Box className="animatedText" sx={{
+          position: 'absolute',
+          top: '30%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          textAlign: 'center',
+        }}>
+          <Typography variant="h4" className="text1">Reuse</Typography>
+          <Typography variant="h4" className="text2">Refresh</Typography>
+          <Typography variant="h4" className="text3">Relove.</Typography>
+        </Box>
+      </Grid>
 
       <Grid item xs={12} md={6} sx={{
         display: 'flex',

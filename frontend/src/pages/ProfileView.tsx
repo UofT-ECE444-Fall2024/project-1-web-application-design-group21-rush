@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
+
 import { useParams, useNavigate } from 'react-router-dom';
-import { Grid, Box, Container, Alert, CircularProgress, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
+import { Grid, Box, Container, Alert, CircularProgress, FormControl, InputLabel, Select, MenuItem, TextField, Paper, Typography } from '@mui/material';
+
 import { authApi } from '../services/api';
 import { User } from '../types/user';
+import { listingsApi } from '../services/api';
+import ListingCard from '../components/listings/ListingCard';
+import { Listing } from '../types/listing';
 
-const CenterImagePage: React.FC = () => {
+const ProfileView: React.FC = () => {
     const categories = ['Sports Equipment', 'Books', 'Clothes', 'Laptops', 'Electronics', 'Furniture', 'Bikes', 'Collectables', 'Miscellaneous'];
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -13,7 +18,11 @@ const CenterImagePage: React.FC = () => {
     const [profilePicSrc, setProfilePicSrc] = useState("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Unknown_person.jpg/1084px-Unknown_person.jpg?20200423155822");
     const [editState, setEditState] = useState(false);
     const [newImage, setNewImage] = useState<File | null>(null);
+
     const navigate = useNavigate();
+    const [userListings, setUserListings] = useState<Listing[]>([]);
+    const [isListingsLoading, setIsListingsLoading] = useState(false);
+    const [listingsError, setListingsError] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -33,6 +42,29 @@ const CenterImagePage: React.FC = () => {
         };
         fetchUser();
     }, []);
+
+    useEffect(() => {
+        const fetchUserListings = async () => {
+          if (!user?.id) return;
+
+          setIsListingsLoading(true);
+          try {
+            console.log('Fetching listings for user ID:', user.id); // Debug log
+            const listings = await listingsApi.getListingsByUser(user.id);
+            console.log('Fetched listings:', listings); // Debug log
+            setUserListings(listings);
+          } catch (error) {
+            console.error('Error in fetchUserListings:', error);
+            setListingsError('Unable to load listings at this time');
+          } finally {
+            setIsListingsLoading(false);
+          }
+        };
+
+        if (user?.id) {
+          fetchUserListings();
+        }
+    }, [user?.id]);
 
     const handleCategoryChange = (category: string) => {
         if (editedUser) {
@@ -114,11 +146,15 @@ const CenterImagePage: React.FC = () => {
     }
 
     return (
+
+        <Container maxWidth="lg">
         <Box sx={{ flexGrow: 1, padding: 2 }}>
             <Grid container spacing={2} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 justifyContent: 'center'
             }}>
+
+       
 
                 <Grid item xs={12} md={3} style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                     <div style={{ textAlign: 'center' }}>
@@ -233,7 +269,35 @@ const CenterImagePage: React.FC = () => {
                 </>)}
 
             </Grid>
-        </Box>
+
+            <Paper sx={{ p: 3, mt: 3 }}>
+                <Typography variant="h5" gutterBottom>
+                    My Listings
+                </Typography>
+
+                {isListingsLoading ? (
+                    <Box display="flex" justifyContent="center" my={4}>
+                        <CircularProgress />
+                    </Box>
+                ) : listingsError ? (
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                        {listingsError}
+                    </Alert>
+                ) : userListings.length === 0 ? (
+                    <Typography color="text.secondary">
+                        You haven't posted any listings yet.
+                    </Typography>
+                ) : (
+                    <Grid container spacing={3} sx={{ mt: 1 }}>
+                        {userListings.map((listing) => (
+                            <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                                <ListingCard listing={listing} />
+                            </Grid>
+                        ))}
+                    </Grid>
+                )}
+            </Paper>
+        </Container>
     );
 };
 
@@ -297,4 +361,4 @@ const styles = {
     } as React.CSSProperties,
 };
 
-export default CenterImagePage;
+export default ProfileView;
