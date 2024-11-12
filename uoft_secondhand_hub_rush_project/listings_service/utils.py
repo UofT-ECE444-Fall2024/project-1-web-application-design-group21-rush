@@ -48,7 +48,7 @@ def upload_to_listings_table(listing_data):
         current_app.logger.error(f"Failed to add listing to DynamoDB: {e}")
         return False
 
-def delete_from_listings_table(listing_id, user_id):
+def delete_from_listings_table(listing_id):
     dynamodb = boto3.resource(
         'dynamodb',
         region_name=current_app.config['AWS_S3_REGION'],
@@ -58,26 +58,21 @@ def delete_from_listings_table(listing_id, user_id):
     
     table = dynamodb.Table(current_app.config['AWS_DB_LISTINGS_TABLE_NAME'])
 
-    listing = get_listing_by_listing_id(listing_id)
-    if (listing['sellerId'] == user_id):
-        try:
-            response = table.delete_item(
-                Key={'id': listing_id}
-            )
-            # Check if deletion was successful based on the response status
-            if response.get('ResponseMetadata', {}).get('HTTPStatusCode') == 200:
-                current_app.logger.info(f"Listing with id {listing_id} deleted successfully.")
-                return True
-            else:
-                current_app.logger.error(f"Failed to delete listing with id {listing_id}: {response}")
-                return False
-        except Exception as e:
-            current_app.logger.error(f"Failed to delete listing with id {listing_id}: {e}")
+    try:
+        response = table.delete_item(
+            Key={'id': listing_id}
+        )
+        # Check if deletion was successful based on the response status
+        if response.get('ResponseMetadata', {}).get('HTTPStatusCode') == 200:
+            current_app.logger.info(f"Listing with id {listing_id} deleted successfully.")
+            return True
+        else:
+            current_app.logger.error(f"Failed to delete listing with id {listing_id}: {response}")
             return False
-    else:
-        current_app.logger.error(f"Denied permission to delete listing with id {listing_id}: {response}")
+    except Exception as e:
+        current_app.logger.error(f"Failed to delete listing with id {listing_id}: {e}")
         return False
-        
+
 def get_all_listings():
   dynamodb = boto3.resource(
         'dynamodb',

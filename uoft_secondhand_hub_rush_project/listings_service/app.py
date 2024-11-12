@@ -1,13 +1,5 @@
 import os
 from flask import Flask, request, jsonify, render_template_string
-from flask_jwt_extended import (
-    JWTManager,
-    create_access_token,
-    jwt_required,
-    get_jwt_identity,
-    get_jwt,
-    jwt_required,
-)
 from utils import upload_to_listings_s3
 from utils import upload_to_listings_table
 from utils import delete_from_listings_table
@@ -51,8 +43,28 @@ UPLOAD_FORM_HTML = """
 def home():
     return 'Hello from listings service!'
 
+@app.route('/api/listings/upload-form')
+def upload_form():
+    return render_template_string(UPLOAD_FORM_HTML)
+
+@app.route('/api/listings/upload', methods=['POST'])
+def upload():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    filename = f"listings/{file.filename}"
+    file_url = upload_to_listings_s3(file, filename)
+
+    if file_url:
+        return jsonify({'message': 'File uploaded successfully', 'file_url': file_url}), 200
+    else:
+        return jsonify({'error': 'Failed to upload file'}), 500
+
 @app.route('/api/listings/create-listing', methods=['POST'])
-@jwt_required()
 def create_listing():
     try:
         data = request.form.to_dict()  # Form data
@@ -109,13 +121,9 @@ def create_listing():
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/listings/delete/<id>', methods=['DELETE'])
-@jwt_required()
 def delete_listing(id):
-
-    user_id = get_jwt_identity()
-
     # attempt to delete the listing from the table
-    success = delete_from_listings_table(id, user_id)
+    success = delete_from_listings_table(id)
     
     if success:
         return jsonify({'message': f'Listing with id {id} deleted successfully'}), 200
@@ -149,16 +157,10 @@ def get_all_listings_route():
         return jsonify({'error': 'Failed to fetch listings'}), 500
 
 @app.route('/api/listings/edit/<id>', methods=['PUT'])
-@jwt_required()
 def edit_listing(id):
     data = request.form.to_dict()  # Get form data
     files = request.files.getlist('file')  # Optional: new images
-
-    user_id = get_jwt_identity()
-    listingInfo = get_listing_by_listing_id(id)
-    if (user_id != listingInfo['sellerId']):
-        return jsonify({'error': 'Permission denied. Failed to update listing'}), 500
-
+    
     # If there are new images, upload them to S3
     image_urls = []
     if files:
@@ -193,24 +195,11 @@ def edit_listing(id):
 
 @app.route('/api/listings/user/<seller_id>', methods=['GET'])
 def get_listings_by_user(seller_id):
-    try:
-        # Get listings from database
-        listings = get_listings_by_seller(seller_id)
-        
-        # Convert listings to JSON-serializable format
-        formatted_listings = []
-        for listing in listings:
-            formatted_listing = {
-                **listing,
-                'images': list(listing.get('images', set())) if isinstance(listing.get('images'), set) else listing.get('images', []),
-                'price': float(listing.get('price', 0)) if isinstance(listing.get('price'), Decimal) else listing.get('price', 0),
-            }
-            formatted_listings.append(formatted_listing)
-            
-        return jsonify({'listings': formatted_listings}), 200
-    except Exception as e:
-        print(f"Error in get_listings_by_user: {str(e)}")
-        return jsonify({'error': 'Failed to fetch listings'}), 500
+    listings = get_listings_by_seller(seller_id)
+    if listings:
+        return jsonify({'listings': listings}), 200
+    else:
+        return jsonify({'message': 'No listings found for this seller'}), 404
 
 @app.route('/api/listings/category/<category>', methods=['GET'])
 def get_listings_by_category(category):
@@ -244,5 +233,6 @@ def get_listing_by_id_endpoint(id):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
+
 
 
