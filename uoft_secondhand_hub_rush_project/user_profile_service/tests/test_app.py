@@ -562,7 +562,7 @@ class TestFlaskApp(unittest.TestCase):
         mock_get_user_by_id.return_value = {"id": "testuser", "username": "testuser", "email": "test@example.com"}
 
         # Make the GET request to retrieve user info
-        response = self.client.get("/api/users/user_info", headers=self.headers)
+        response = self.client.get("/api/users/current_user_info", headers=self.headers)
 
         # Verify the response status code and content
         self.assertEqual(response.status_code, 200)
@@ -575,7 +575,7 @@ class TestFlaskApp(unittest.TestCase):
         mock_get_user_by_id.return_value = None
 
         # Make the GET request to retrieve user info
-        response = self.client.get("/api/users/user_info", headers=self.headers)
+        response = self.client.get("/api/users/current_user_info", headers=self.headers)
 
         # Verify the response status code and error message
         self.assertEqual(response.status_code, 404)

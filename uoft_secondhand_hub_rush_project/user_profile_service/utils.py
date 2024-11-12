@@ -170,11 +170,19 @@ def get_user_by_username(username):
     Returns:
         dict or None: The user data if found, converted to native Python types, else None.
     """
-    table = get_user_table()
+    dynamodb = boto3.resource(
+        'dynamodb',
+        region_name=current_app.config['AWS_S3_REGION'],
+        aws_access_key_id=current_app.config['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=current_app.config['AWS_SECRET_ACCESS_KEY']
+    )
+    
+    table = dynamodb.Table(current_app.config['AWS_DB_USERS_TABLE_NAME'])
 
     try:
         response = table.query(
-            KeyConditionExpression=Key('username').eq(username)
+            IndexName='username-index',
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('username').eq(username)
         )
         items = response.get('Items', [])
         current_app.logger.info(f"Queried DynamoDB for username={username}: Found {len(items)} items.")
@@ -183,7 +191,7 @@ def get_user_by_username(username):
         else:
             return None
     except Exception as e:
-        current_app.logger.error(f"Failed to query DynamoDB for user_id={user_id}: {e}")
+        current_app.logger.error(f"Failed to query DynamoDB for username={username}: {e}")
         return None
 
 def scan_users_by_attribute(attribute_name, attribute_value):
