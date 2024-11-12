@@ -21,7 +21,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { listingsApi, authApi, userApi } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
 
 const CreateListing: React.FC = () => {
   const [listing, setListing] = useState({
