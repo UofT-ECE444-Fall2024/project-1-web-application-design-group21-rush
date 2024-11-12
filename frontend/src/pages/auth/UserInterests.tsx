@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../../services/api';
+import './Signup.css';
 
 const interestsList = [
   'Books',
@@ -84,11 +85,24 @@ const UserInterests: React.FC = () => {
   return (
     <Grid container sx={{ height: '100vh' }}>
       <Grid item xs={12} md={6} sx={{
-        backgroundImage: `url('/logobig.png')`, // Update the image path if necessary
+        backgroundImage: `url('/logobig.png')`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }} />
-
+        backgroundPosition: 'center',
+        position: 'relative'
+      }}>
+        <Box className="animatedText" sx={{
+          position: 'absolute',
+          top: '30%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          textAlign: 'center',
+        }}>
+          <Typography variant="h4" className="text1">Reuse</Typography>
+          <Typography variant="h4" className="text2">Refresh</Typography>
+          <Typography variant="h4" className="text3">Relove.</Typography>
+        </Box>
+      </Grid>
+      
       <Grid item xs={12} md={6} sx={{
         display: 'flex',
         alignItems: 'center',
