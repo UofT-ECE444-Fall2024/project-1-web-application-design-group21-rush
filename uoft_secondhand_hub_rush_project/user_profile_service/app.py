@@ -17,7 +17,6 @@ from email.mime.text import MIMEText
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import datetime
-import json
 
 from utils import (
     get_user_table,
@@ -26,7 +25,6 @@ from utils import (
     get_user_by_username,
     scan_users_by_attribute,
     update_user,
-    upload_to_user_s3,
 )
 
 db = SQLAlchemy()
@@ -877,6 +875,72 @@ def register_routes(app):
         except Exception as e:
             app.logger.error(f"An unexpected error occurred during password reset: {e}")
             return jsonify({"error": "An unexpected error occurred"}), 500
+
+    @app.route("/api/users/profile_picture", methods=["POST"])
+    @jwt_required()
+    def upload_profile_picture():
+        user_id = get_jwt_identity()
+
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+
+        user = get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # If user has existing profile picture, delete it
+        old_profile_picture_url = user.get('profile_picture_url')
+        if old_profile_picture_url:
+            # Extract filename from URL
+            parsed_url = urlparse(old_profile_picture_url)
+            old_filename = parsed_url.path.lstrip('/')
+            delete_success = delete_from_users_s3(old_filename)
+            if not delete_success:
+                app.logger.error(f"Failed to delete old profile picture for user {user_id}")
+
+        # Generate a unique filename
+        extension = os.path.splitext(file.filename)[1]
+        timestamp = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        filename = f"users/{user_id}_{timestamp}{extension}"
+
+        # Upload the new profile picture
+        file_url = upload_to_users_s3(file, filename)
+        if file_url:
+            # Update the user's data
+            success = update_user(user_id, {'profile_picture_url': file_url})
+            if not success:
+                return jsonify({'error': 'Failed to update user data'}), 500
+
+            return jsonify({'message': 'Profile picture uploaded successfully', 'profile_picture_url': file_url}), 200
+        else:
+            return jsonify({'error': 'Failed to upload file'}), 500
+
+    @app.route("/api/users/profile_picture/<user_id>", methods=["GET"])
+    def get_profile_picture(user_id):
+        user = get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        profile_picture_url = user.get('profile_picture_url')
+        if not profile_picture_url:
+            return jsonify({'error': 'User has no profile picture'}), 404
+
+        # Extract filename from URL
+        parsed_url = urlparse(profile_picture_url)
+        filename = parsed_url.path.lstrip('/')
+
+        # Generate a presigned URL
+        presigned_url = get_presigned_url_from_users_s3(filename)
+        if not presigned_url:
+            return jsonify({'error': 'Failed to generate presigned URL'}), 500
+
+        # Return the presigned URL
+        return jsonify({'profile_picture_url': presigned_url}), 200
+
 
 
 if __name__ == "__main__":
