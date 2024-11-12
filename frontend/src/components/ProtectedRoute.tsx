@@ -12,7 +12,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component })
 
     return isAuthenticated ? (
         <>
-            <Header /> {/* Navbar/Header will only appear when authenticated */}
             <Component />
         </>
     ) : (
@@ -20,4 +19,4 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component })
     );
 };
 
-export default ProtectedRoute;
+export default ProtectedRoute
