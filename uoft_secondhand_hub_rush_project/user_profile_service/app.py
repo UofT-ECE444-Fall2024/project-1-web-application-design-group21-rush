@@ -532,9 +532,11 @@ def register_routes(app):
         wishlist = user.get("wishlist", [])
         return jsonify({"wishlist": wishlist}), 200
 
-    @app.route("/api/users/user_info", methods=["GET"])
+    @app.route("/api/users/user_info/<username>", methods=["GET"])
     @jwt_required()
     def get_user_info(username):
+        if not username:
+            return jsonify({"error": "Username parameter is required"}), 400
         
         try:
             user_info = get_user_by_username(username)

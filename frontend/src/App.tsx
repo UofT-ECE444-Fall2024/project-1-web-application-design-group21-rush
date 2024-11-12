@@ -15,6 +15,7 @@ import Header from './components/layout/Header';
 import { AuthProvider } from './context/AuthContext';
 import Wishlist from './pages/Wishlist';
 import Report from './pages/Report';
+import UserView from './pages/UserView';
 import './App.css';
 import UserInterests from './pages/auth/UserInterests';
 import VerifyEmail from './pages/auth/VerifyEmail';
@@ -47,7 +48,7 @@ function App() {
                 <Route path="/wishlist" element={<ProtectedRoute component={Wishlist} />} />
                 <Route path="/report" element={<ProtectedRoute component={Report} />} />
                 <Route path="/profile-view" element={<ProtectedRoute component={ProfileView} />} />
-
+                <Route path="/user-view/:username" element={<ProtectedRoute component={UserView} />} />
 
               </Routes>
             </div>

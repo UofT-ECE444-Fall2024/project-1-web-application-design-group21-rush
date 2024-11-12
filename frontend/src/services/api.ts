@@ -289,7 +289,8 @@ export const authApi = {
       }
   
       try {
-          const response = await axios.get(`${USER_SERVICE_URL}/api/users/user_info`, {
+          const response = await axios.get(`${USER_SERVICE_URL}/api/users/user_info/${username}`, 
+          {
               headers: {
                   'Authorization': `Bearer ${token}`,
                   'Content-Type': 'application/json'
@@ -329,33 +330,6 @@ export const authApi = {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
     }
   },
-
-  // editUser: async (formData: FormData): Promise<{ message: string } | ErrorResponse> => {
-  //   const token = localStorage.getItem('access_token');
-  //   if (!token) return { error: 'No token found' };
-
-  //   try {
-  //       const response = await axios.post(
-  //           `${USER_SERVICE_URL}/api/users/edit`,
-  //           formData,
-  //           {
-  //               headers: {
-  //                   'Authorization': `Bearer ${token}`,
-  //                   'Content-Type': 'multipart/form-data',
-  //                   'Accept': 'application/json'
-  //               }
-  //           }
-  //       );
-  //       return response.data;
-  //   } catch (error) {
-  //       console.error('Error in editUser:', error);
-  //       return { 
-  //           error: axios.isAxiosError(error) && error.response?.data?.error 
-  //               ? error.response.data.error 
-  //               : 'Failed to update user'
-  //       };
-  //   }
-  // },
 
 };
 
