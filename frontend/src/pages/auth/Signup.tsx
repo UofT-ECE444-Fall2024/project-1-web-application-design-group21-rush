@@ -20,11 +20,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../services/api';
 
 const Signup: React.FC = () => {
+
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [location, setLocation] = useState('');
+
   const [alertMsg, setAlertMsg] = useState<string | JSX.Element>('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +40,7 @@ const Signup: React.FC = () => {
       setAlertMsg('Please enter a valid email address.');
       return;
     }
+
     if (location === '') {
       setAlertMsg('Please select a location');
       return;
@@ -50,6 +53,7 @@ const Signup: React.FC = () => {
       setAlertMsg('Passwords must match');
       return;
     }
+
     if (password.length < 8) {
       setAlertMsg('Password must be at least 8 characters long.');
       return;
@@ -68,11 +72,13 @@ const Signup: React.FC = () => {
     }
     setAlertMsg('');
 
+
     const userInfo = {
       displayName: displayName,
       email: email,
       password: password,
       location: location
+
     };
 
     setIsLoading(true);
@@ -98,6 +104,7 @@ const Signup: React.FC = () => {
       setEmail('');
       return;
     }
+
 
     // Move to the next page for choosing interests
     navigate('/choose-interests-upon-signup', { 

@@ -9,12 +9,14 @@ import {
   Alert
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
+
 import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { authApi } from '../../services/api';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const [alertMsg, setAlertMsg] = useState(''); // Show success or error messages
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -79,6 +81,7 @@ const Login: React.FC = () => {
         </Typography>
 
         {alertMsg && (
+
           <Alert severity="success" sx={{ mb: 2 }}>
             {alertMsg}
           </Alert>

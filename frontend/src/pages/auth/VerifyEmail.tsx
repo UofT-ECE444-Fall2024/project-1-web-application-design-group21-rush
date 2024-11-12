@@ -43,6 +43,7 @@ const VerifyEmail: React.FC = () => {
           if (prev <= 1) {
             clearInterval(timer);
             setResendDisabled(false);
+
             return 60;
           }
           return prev - 1;
@@ -63,6 +64,7 @@ const VerifyEmail: React.FC = () => {
     } catch (error) {
       console.error(error);
     }
+
   };
 
   // were polling for email in the database

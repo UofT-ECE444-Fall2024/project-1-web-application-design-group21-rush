@@ -52,6 +52,18 @@ export const listingsApi = {
   },
 
   getWishlistItems: async (token: string) => {
+    const CACHE_TIME = 5000; // 5 seconds
+    const cacheKey = 'wishlist-cache';
+    const cachedData = sessionStorage.getItem(cacheKey);
+    
+    if (cachedData) {
+      const { data, timestamp } = JSON.parse(cachedData);
+      if (Date.now() - timestamp < CACHE_TIME) {
+        return data;
+      }
+    }
+
+
     try {
       const response = await axios.get(
         `${USER_SERVICE_URL}/api/users/wishlist/get`,
@@ -60,23 +72,25 @@ export const listingsApi = {
         }
       );
       
-      // Debug log to see the response structure
-      console.log('Wishlist response:', response.data);
-      
-      // Make sure we're accessing the wishlist array correctly
       const listingIds = response.data.wishlist || [];
       
-      // Check if we have any listing IDs
       if (listingIds.length === 0) {
         return [];
       }
       
-      // Fetch full listing details for each ID
+
       const listingPromises = listingIds.map((id: string) => 
         listingsApi.getListingById(id)
       );
       
       const listings = await Promise.all(listingPromises);
+      
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        data: listings,
+        timestamp: Date.now()
+      }));
+
+
       return listings;
     } catch (error) {
       console.error('Error fetching wishlist:', error);

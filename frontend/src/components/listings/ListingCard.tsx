@@ -18,6 +18,8 @@ import { useNavigate } from "react-router-dom";
 import { Listing } from "../../types/listing";
 import { listingsApi } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { useWishlist } from "../../context/WishlistContext";
+
 
 interface ListingCardProps {
   listing: Listing;
@@ -28,31 +30,11 @@ const ListingCard: React.FC<ListingCardProps> = ({
   listing,
   context = "home",
 }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
-
-  const { isAuthenticated, getToken } = useAuth();
-
-  // Check if item is in wishlist on component mount
-  useEffect(() => {
-    const checkWishlistStatus = async () => {
-      if (!isAuthenticated) return;
-      
-      try {
-        const token = getToken();
-        if (!token) return;
-        
-        const wishlistItems = await listingsApi.getWishlistItems(token);
-        setIsWishlisted(wishlistItems.some(item => item.id === listing.id));
-      } catch (error) {
-        console.error('Error checking wishlist status:', error);
-      }
-    };
-
-    checkWishlistStatus();
-  }, [isAuthenticated, listing.id, getToken]);
+  const { isAuthenticated } = useAuth();
+  const { isItemWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
 
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -64,20 +46,14 @@ const ListingCard: React.FC<ListingCardProps> = ({
       return;
     }
 
-    const token = getToken();
-    if (!token) {
-      setShowLoginDialog(true);
-      return;
-    }
-
     try {
       setIsUpdating(true);
-      if (isWishlisted) {
-        await listingsApi.removeFromWishlist(listing.id, token);
+      if (isItemWishlisted(listing.id)) {
+        await removeFromWishlist(listing.id);
       } else {
-        await listingsApi.addToWishlist(listing.id, token);
+        await addToWishlist(listing);
       }
-      setIsWishlisted(!isWishlisted);
+
     } catch (error) {
       console.error('Error updating wishlist:', error);
     } finally {
@@ -96,7 +72,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
       navigate(`/productInfo/${listing.id}`);
     }
     return;
-    // Wishlist context behavior will be implemented later
+
   };
 
   const handleLoginClick = () => {
@@ -168,7 +144,8 @@ const ListingCard: React.FC<ListingCardProps> = ({
           }}
           onClick={handleWishlistClick}
         >
-          {isWishlisted ? (
+          {isItemWishlisted(listing.id) ? (
+
             <FaHeart color="#ff4444" size={20} />
           ) : (
             <FaRegHeart color="#666666" size={20} />
