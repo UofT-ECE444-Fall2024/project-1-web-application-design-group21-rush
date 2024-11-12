@@ -2,17 +2,33 @@ import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { FaRegUserCircle } from "react-icons/fa";
-import { useAuth } from '../../context/AuthContext'; 
+import { useAuth } from '../../context/AuthContext';
 import logo from './logo.png';
+import { authApi } from '../../services/api';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth(); 
+  const { isAuthenticated, logout } = useAuth();
 
   const handleNavigation = (path: string) => {
     navigate(path);
   };
-
+  const handleLogout = async () => {
+    try {
+      const response = await authApi.logoutUser();
+      if ('error' in response) {
+        // If there's an error key, log out failed
+        console.error('Logout failed:', response.error);
+        alert('Failed to log out');
+      } else {
+        logout();
+        navigate('/login'); 
+      }
+    } catch (error) {
+      console.error('An unexpected error occurred during logout:', error);
+      alert('An unexpected error occurred.');
+    }
+  };
   const buttonStyle = {
     textTransform: 'none',
     marginRight: 2,
@@ -27,9 +43,9 @@ const Header: React.FC = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Button 
-          onClick={() => handleNavigation('/')} 
-          sx={{ 
+        <Button
+          onClick={() => handleNavigation('/')}
+          sx={{
             textTransform: 'none',
             padding: '8px',
             '&:hover': {
@@ -37,23 +53,23 @@ const Header: React.FC = () => {
             }
           }}
         >
-          <img 
-            src={logo} 
-            alt="UofT Secondhand Hub Logo" 
-            style={{ 
+          <img
+            src={logo}
+            alt="UofT Secondhand Hub Logo"
+            style={{
               height: '60px',
               width: 'auto',
               borderRadius: '50%',
               border: '2px solid white',
-            }} 
+            }}
           />
         </Button>
 
         <Box sx={{ flexGrow: 1.5 }} />
-        
-        <Typography 
-          variant="h5" 
-          sx={{ 
+
+        <Typography
+          variant="h5"
+          sx={{
             flexGrow: 1,
             textAlign: 'center',
             fontWeight: 'bold',
@@ -67,14 +83,14 @@ const Header: React.FC = () => {
 
         {!isAuthenticated ? (
           <>
-            <Button 
+            <Button
               onClick={() => handleNavigation('/signup')}
               sx={buttonStyle}
             >
               Signup
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => handleNavigation('/login')}
               sx={buttonStyle}
             >
@@ -83,35 +99,35 @@ const Header: React.FC = () => {
           </>
         ) : (
           <>
-            <Button 
+            <Button
               onClick={() => handleNavigation('/recommended')}
               sx={buttonStyle}
             >
               Recommended
             </Button>
 
-            <Button 
+            <Button
               onClick={() => handleNavigation('/wishlist')}
               sx={buttonStyle}
             >
               Wishlist
             </Button>
 
-            <Button 
+            <Button
               onClick={() => handleNavigation('/create-listing')}
               sx={buttonStyle}
             >
               Create Listing
             </Button>
-            
+
             <FaRegUserCircle
               size={40}
               style={{ cursor: 'pointer', marginRight: 16, color: 'white' }}
               onClick={() => handleNavigation('/profile-view')}
             />
-            
-            <Button 
-              onClick={() => handleNavigation('/')}
+
+            <Button
+              onClick={() => handleLogout()}
               sx={buttonStyle}
             >
               Logout
