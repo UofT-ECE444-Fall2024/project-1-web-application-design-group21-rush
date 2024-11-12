@@ -27,6 +27,7 @@ import requests
 app = Flask(__name__)
 CORS(app)
 app.config.from_pyfile('config.py')
+jwt = JWTManager(app)
 
 # temporary HTML template for file upload
 UPLOAD_FORM_HTML = """
