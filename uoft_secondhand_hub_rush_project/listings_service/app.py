@@ -1,7 +1,12 @@
 import os
 from flask import Flask, request, jsonify, render_template_string
 from flask_jwt_extended import (
-    jwt_required
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+    get_jwt,
+    jwt_required,
 )
 from utils import upload_to_listings_s3
 from utils import upload_to_listings_table
@@ -45,28 +50,6 @@ UPLOAD_FORM_HTML = """
 @app.route('/')
 def home():
     return 'Hello from listings service!'
-
-@app.route('/api/listings/upload-form')
-def upload_form():
-    return render_template_string(UPLOAD_FORM_HTML)
-
-@app.route('/api/listings/upload', methods=['POST'])
-@jwt_required()
-def upload():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'}), 400
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-
-    filename = f"listings/{file.filename}"
-    file_url = upload_to_listings_s3(file, filename)
-
-    if file_url:
-        return jsonify({'message': 'File uploaded successfully', 'file_url': file_url}), 200
-    else:
-        return jsonify({'error': 'Failed to upload file'}), 500
 
 @app.route('/api/listings/create-listing', methods=['POST'])
 @jwt_required()
@@ -128,8 +111,11 @@ def create_listing():
 @app.route('/api/listings/delete/<id>', methods=['DELETE'])
 @jwt_required()
 def delete_listing(id):
+
+    user_id = get_jwt_identity()
+
     # attempt to delete the listing from the table
-    success = delete_from_listings_table(id)
+    success = delete_from_listings_table(id, user_id)
     
     if success:
         return jsonify({'message': f'Listing with id {id} deleted successfully'}), 200
@@ -167,7 +153,12 @@ def get_all_listings_route():
 def edit_listing(id):
     data = request.form.to_dict()  # Get form data
     files = request.files.getlist('file')  # Optional: new images
-    
+
+    user_id = get_jwt_identity()
+    listingInfo = get_listing_by_listing_id(id)
+    if (user_id != listingInfo['sellerId']):
+        return jsonify({'error': 'Permission denied. Failed to update listing'}), 500
+
     # If there are new images, upload them to S3
     image_urls = []
     if files:
