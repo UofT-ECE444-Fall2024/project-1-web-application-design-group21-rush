@@ -1,0 +1,43 @@
+/* Signup.css */
+
+.animatedText {
+  display: flex;
+  align-items: center;
+  color:azure;
+  font-size: 3rem;
+  font-weight: 900;
+  justify-content: center;
+  gap: 10px; /* Adds space between words */
+}
+
+.animatedText .word {
+  opacity: 0;
+  color: white !important; /* Ensures text color is white */
+  font-weight: 900; /* Makes the text thicker */
+  font-size: 3rem; /* Increases the font size */
+  transition: opacity 0.5s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0%, 20%, 100% {
+    opacity: 0;
+  }
+  25%, 75% {
+    opacity: 1;
+  }
+}
+
+.animatedText .text1 {
+  animation: fadeInOut 7s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.animatedText .text2 {
+  animation: fadeInOut 7s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+.animatedText .text3 {
+  animation: fadeInOut 7s ease-in-out infinite;
+  animation-delay: 4s;
+}
