@@ -10,6 +10,8 @@ import {
   ErrorResponse,
   LogoutResponse
 } from './types';
+import ForgotPassword from '../pages/auth/forgotPassword';
+import ResetPassword from '../pages/auth/reset_password';
 
 // This file contains functions to interact with the backend services for listings and search.
 // TODO: Replace direct service URLs with API Gateway once implemented
@@ -356,6 +358,27 @@ export const authApi = {
   //       };
   //   }
   // },
+  ForgotPassword: async (email: string): Promise<{ message: string } | ErrorResponse> => {
+    try {
+      const response = await axios.post<{ message: string }>(`${USER_SERVICE_URL}/api/users/forgot_password`, {
+        email,
+      });
+      return response.data;
+    } catch (error) {
+      return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
+  resetPassword: async (token: string, new_password: string): Promise<{ message: string } | ErrorResponse> => {
+    try {
+      const response = await axios.post<{ message: string }>(`${USER_SERVICE_URL}/api/users/reset_password/${token}`, {
+        new_password,
+      });
+      return response.data;
+    } catch (error) {
+      return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
+  
 
 };
 

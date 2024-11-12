@@ -19,8 +19,8 @@ import './App.css';
 import UserInterests from './pages/auth/UserInterests';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import { WishlistProvider } from './context/WishlistContext';
-
-
+import ForgotPassword from './pages/auth/forgotPassword';
+import ResetPassword  from './pages/auth/reset_password';
 
 function App() {
   return (
@@ -38,7 +38,8 @@ function App() {
                 <Route path="/signup" element={<Signup />} />
                 <Route path='/choose-interests-upon-signup' element={<UserInterests/>}/>
                 <Route path='/verifyEmail' element={<VerifyEmail/>}/>
-                
+                <Route path='/forgotPassword' element={<ForgotPassword/>}/>
+                <Route path="/api/users/reset_password/:token" element={<ResetPassword />} />
                 {/* Protected Routes */}
                 
                 <Route path="/productInfo/:id" element={<ProtectedRoute component={ProductInfo} />} />

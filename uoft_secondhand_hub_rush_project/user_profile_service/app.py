@@ -98,7 +98,8 @@ def send_password_reset_email(email, username, serializer):
     token = serializer.dumps(email, salt="password-reset-salt")
 
     # Build the password reset URL
-    reset_url = url_for("reset_password", token=token, _external=True)
+    frontend_base_url = "http://localhost:3000/api/users"  # Change this to your frontend's URL
+    reset_url = f"{frontend_base_url}/reset_password/{token}"
 
     # Email content
     subject = "Password Reset Request"

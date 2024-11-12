@@ -16,7 +16,7 @@ import { authApi } from '../../services/api';
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [forgotPassCheck, setForgotPassCheck] = useState('');
   const [alertMsg, setAlertMsg] = useState(''); // Show success or error messages
   const [successMsg, setSuccessMsg] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
@@ -48,6 +48,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     if (!emailRegex.test(email)) {
       setAlertMsg('Please enter a valid email address.');
+      setForgotPassCheck('');
       return;
     }
     setAlertMsg('');
@@ -63,6 +64,7 @@ const Login: React.FC = () => {
         setTimeout(() => navigate('/'), 1500);
       } else {
         setAlertMsg(response.error || 'Invalid email or password.');
+        setForgotPassCheck('failedpasspotentially');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -84,7 +86,7 @@ const Login: React.FC = () => {
 
         {alertMsg && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {alertMsg}
+              {alertMsg}. Forgot your password?<a href="/forgotPassword">Reset Password</a>
             </Alert>
           )}
 
