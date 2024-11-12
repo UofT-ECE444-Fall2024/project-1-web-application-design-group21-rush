@@ -64,6 +64,7 @@ const VerifyEmail: React.FC = () => {
     } catch (error) {
       console.error(error);
     }
+
   };
 
   // were polling for email in the database

@@ -53,6 +53,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
       } else {
         await addToWishlist(listing);
       }
+
     } catch (error) {
       console.error('Error updating wishlist:', error);
     } finally {

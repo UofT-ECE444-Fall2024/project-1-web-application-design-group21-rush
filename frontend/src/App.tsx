@@ -48,11 +48,13 @@ function App() {
                 <Route path="/report" element={<ProtectedRoute component={Report} />} />
                 <Route path="/profile-view" element={<ProtectedRoute component={ProfileView} />} />
 
+
               </Routes>
             </div>
           </Router>
         </ThemeProvider>
       </WishlistProvider>
+
     </AuthProvider>
   );
 }

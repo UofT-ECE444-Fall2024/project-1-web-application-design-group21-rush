@@ -26,6 +26,7 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [location, setLocation] = useState('');
+
   const [alertMsg, setAlertMsg] = useState<string | JSX.Element>('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -104,6 +105,7 @@ const Signup: React.FC = () => {
       setEmail('');
       return;
     }
+
 
     // Move to the next page for choosing interests
     navigate('/choose-interests-upon-signup', { 

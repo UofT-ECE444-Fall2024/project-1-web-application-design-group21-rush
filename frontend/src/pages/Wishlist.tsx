@@ -57,6 +57,7 @@ const Wishlist: React.FC = () => {
         ))}
       </Grid>
     </Container>
+
   );
 };
 
