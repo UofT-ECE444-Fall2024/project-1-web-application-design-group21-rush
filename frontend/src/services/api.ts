@@ -423,7 +423,15 @@ export const authApi = {
       return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
     }
   },
-
+  verifyButton: async (token: string): Promise<{ message: string } | ErrorResponse> => {
+    try {
+      console.log(token);
+      const response = await axios.post<{ message: string }>(`${USER_SERVICE_URL}/api/users/verify_email/${token}`);
+      return response.data;
+    } catch (error) {
+      return { error: axios.isAxiosError(error) && error.response ? error.response.data.error : 'Unknown error' };
+    }
+  },
   ChangePassword: async (old_password: string, new_password: string): Promise<{ message: string } | ErrorResponse> => {
     try {
       const token = localStorage.getItem('accessToken'); // Assuming the token is stored in localStorage

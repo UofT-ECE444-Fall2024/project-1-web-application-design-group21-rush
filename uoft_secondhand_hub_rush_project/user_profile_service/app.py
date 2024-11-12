@@ -40,7 +40,8 @@ def send_verification_email(email, username, serializer):
     token = serializer.dumps(email, salt="email-confirm-salt")
 
     # Build the verification URL
-    verification_url = url_for("verify_email", token=token, _external=True)
+    frontend_base_url = "https://uoftsecondhandhub.com"  # Change this to your frontend's URL
+    verification_url = f"{frontend_base_url}/verify_email_button/{token}"
 
     # Email content
     subject = "Verify Your Email Address"
@@ -352,8 +353,7 @@ def register_routes(app):
                 ),
                 500,
             )
-
-    @app.route("/api/users/verify_email/<token>", methods=["GET"])
+    @app.route("/api/users/verify_email/<token>", methods=["POST"])
     def verify_email(token):
         app.logger.info("Received email verification request")
         try:

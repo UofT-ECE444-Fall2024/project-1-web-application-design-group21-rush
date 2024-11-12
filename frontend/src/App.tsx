@@ -23,6 +23,7 @@ import { WishlistProvider } from './context/WishlistContext';
 import ForgotPassword from './pages/auth/forgotPassword';
 import ResetPassword  from './pages/auth/reset_password';
 import ChangePassword from './pages/auth/changePassword';
+import VerifyEmailButton from './pages/auth/verifyEmailButton';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
                 <Route path='/forgotPassword' element={<ForgotPassword/>}/>
                 <Route path="/reset_password/:token" element={<ResetPassword />} />
                 <Route path="/change-password" element={<ChangePassword />} />
+                <Route path="/verify_email_button/:token" element={<VerifyEmailButton />} />
                 {/* Protected Routes */}
                 
                 <Route path="/productInfo/:id" element={<ProtectedRoute component={ProductInfo} />} />
