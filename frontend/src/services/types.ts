@@ -4,7 +4,7 @@ export interface RegisterRequest {
     email: string;
     password: string;
     wishlist?: string;
-    categories?: string;
+    categories?: string[];
     location?: string;
 }
 
