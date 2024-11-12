@@ -291,6 +291,11 @@ def register_routes(app):
             app.logger.warning("Missing required fields in pre-registration")
             return jsonify({"error": "Username, email, and password are required"}), 400
 
+        # If email doesn't end with "@mail.utoronto.ca"
+        if not email.endswith("@mail.utoronto.ca"):
+            app.logger.warning("Signing up with a non-uoft email.")
+            return jsonify({"error": "U of T email is required"}), 401
+
         # Check if username or email already exists
         exists_username = scan_users_by_attribute("username", username)
         exists_email = scan_users_by_attribute("email", email)
