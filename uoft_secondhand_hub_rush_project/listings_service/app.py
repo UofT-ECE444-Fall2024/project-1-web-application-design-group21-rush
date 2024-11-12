@@ -195,11 +195,24 @@ def edit_listing(id):
 
 @app.route('/api/listings/user/<seller_id>', methods=['GET'])
 def get_listings_by_user(seller_id):
-    listings = get_listings_by_seller(seller_id)
-    if listings:
-        return jsonify({'listings': listings}), 200
-    else:
-        return jsonify({'message': 'No listings found for this seller'}), 404
+    try:
+        # Get listings from database
+        listings = get_listings_by_seller(seller_id)
+        
+        # Convert listings to JSON-serializable format
+        formatted_listings = []
+        for listing in listings:
+            formatted_listing = {
+                **listing,
+                'images': list(listing.get('images', set())) if isinstance(listing.get('images'), set) else listing.get('images', []),
+                'price': float(listing.get('price', 0)) if isinstance(listing.get('price'), Decimal) else listing.get('price', 0),
+            }
+            formatted_listings.append(formatted_listing)
+            
+        return jsonify({'listings': formatted_listings}), 200
+    except Exception as e:
+        print(f"Error in get_listings_by_user: {str(e)}")
+        return jsonify({'error': 'Failed to fetch listings'}), 500
 
 @app.route('/api/listings/category/<category>', methods=['GET'])
 def get_listings_by_category(category):
